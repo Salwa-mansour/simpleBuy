@@ -8,6 +8,7 @@ import RequireAuth from "./components/RequireAuth";
 import PersistLogin from "./components/PersistLogin";
 import Home from "./components/Home";
 import Missing from "./components/Missing";
+import CategoryList from "components/category/List.jsx"
 
 
 function App() {
@@ -19,18 +20,22 @@ function App() {
        <Route path="register" element={<Register />} />
        <Route path="/oauth-callback" element={<OAuthCallback />} />
             
-       <Route path="/" element={<Layout />}>
-         
-         {/* Protected Application Routes */}
-          <Route element={<PersistLogin />}>
-           <Route element={<RequireAuth />}> 
+    <Route element={<PersistLogin />}>
+        <Route element={<RequireAuth />}> 
+          
+      
+          <Route path="/" element={<Layout />}>
                  <Route path="/" element={<Home />} />
+                 <Route path="categories" element={<CategoryList/>} />
            </Route>
-          </Route> 
-        {/* Fallbacks & Redirects */}
+
+        </Route> 
        
-         <Route path="*" element={<Missing/>} />
-       </Route>
+      </Route>
+
+       {/* Fallbacks & Redirects */}
+       
+        <Route path="*" element={<Missing/>} />
     </Routes>
 
   )

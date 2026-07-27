@@ -1,11 +1,11 @@
 import { Outlet } from "react-router-dom";
-import LogoutBtn from "./LogoutBtn";
+import Nav from "./Nav";
 
 
 const Layout = () => {
     return (
         <main className="App">
-            <LogoutBtn />
+            <Nav/>
             <Outlet />
         </main>
     )
