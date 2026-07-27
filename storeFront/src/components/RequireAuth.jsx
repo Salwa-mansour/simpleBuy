@@ -6,7 +6,7 @@ const  RequireAuth = ()=>{
  
     const { auth } = useAuth();
     const location = useLocation();
-    console.log("Current Auth State require uth:", auth);
+    
   return (
   auth?.userId  ?
    <Outlet />

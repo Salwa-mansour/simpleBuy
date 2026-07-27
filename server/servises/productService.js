@@ -30,7 +30,7 @@ export const updateProduct = async (id, updateData) => {
   return await Product.findByIdAndUpdate(
     id,
     updateData,
-    { new: true, runValidators: true }
+    {  returnDocument: 'after', runValidators: true }
   ).populate('category', 'name description');
 };
 

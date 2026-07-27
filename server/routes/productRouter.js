@@ -4,7 +4,9 @@ import ROLES_LIST from '../config/rolesList.js';
 import * as productController from "../controllers/productController.js";
 import verifyRoles from "../middleware/verifyRoles.js";
 import auth from "../middleware/authMiddleware.js";
+import { generateUploadSignture } from '../middleware/cloudinary.js';
 
+router.get('/generate-upload-signature', auth, verifyRoles(ROLES_LIST.ADMIN), generateUploadSignture);
 // --- CREATE ---
 // Admin only: Create a new product
 router.post('/create', auth, verifyRoles(ROLES_LIST.ADMIN), productController.createProduct);

@@ -5,7 +5,7 @@ const verifyRoles = (...allowedRoles) => {
         // 1. Get the user's roles from the JWT (passed by authMiddleware)
         // Expected format in JWT: roles: ["USER", "ADMIN"]
         const userRoleCodes = req.user?.roles; 
-    
+  
         if (!userRoleCodes) return res.sendStatus(401);
 
       

@@ -3,12 +3,13 @@ import * as productService from "../servises/productService.js";
 
 // --- CREATE ---
 export const createProduct = catchAsync(async (req, res, next) => {
+
   const newProductData = {
     title: req.body.title,
     description: req.body.description,
     price: req.body.price,
     stock: req.body.stock,
-    category: req.body.categoryId,
+    category: req.body.category || req.body.categoryId,
     imageUrl: req.body.imageUrl
   };
 

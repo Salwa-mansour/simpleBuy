@@ -33,11 +33,7 @@ const PersistLogin = () => { // 💡 Capitalized component name (React Best Prac
         return () => isMounted = false;
     }, []);
 
-    useEffect(() => {
-        console.log(`persist: ${persist}`);
-        console.log(`AT: ${JSON.stringify(auth?.accessToken)}`);
-    }, [isLoading]);
-
+  
     // 💡 FIXED LOGIC SECTION:
     return (
         <>
