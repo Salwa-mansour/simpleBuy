@@ -1,6 +1,6 @@
 import { useState } from "react";
 import useAxiosPrivate from "../../hooks/useAxiosPrivate";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 
 const CreateCategory = () => {
   const [categoryName, setCategoryName] = useState("");
@@ -30,8 +30,8 @@ const CreateCategory = () => {
       // Reset form fields
       setCategoryName("");
       setCategoryDesc("");
-      console.log(response.data)
-     // navigate('/categories');
+      
+      navigate('/categories');
     } catch (err) {
       console.error(err);
       // Grab response message from Express backend if available

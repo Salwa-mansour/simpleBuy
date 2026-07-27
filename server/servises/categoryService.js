@@ -12,6 +12,7 @@ export const getAllCategories = async () => {
 
 // --- READ BY ID ---
 export const getCategoryById = async (id) => {
+ 
   return await Category.findById(id);
 };
 
@@ -20,7 +21,7 @@ export const updateCategory = async (id, updateData) => {
   return await Category.findByIdAndUpdate(
     id,
     updateData,
-    { new: true, runValidators: true } // Return updated doc & run schema validations
+    { returnDocument: 'after', runValidators: true } // Return updated doc & run schema validations
   );
 };
 

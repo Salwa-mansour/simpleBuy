@@ -1,11 +1,13 @@
 import { useAuth } from "../hooks/useAuth";
+import Nav from "./Nav";
 
 
 const Home = () => {
     const { auth } = useAuth();
- console.log("Current Auth State on Home:", auth);
 
     return (
+        <>
+        <Nav/>
         <section>
             <h1>Home</h1>
             <br />
@@ -13,6 +15,8 @@ const Home = () => {
          
         
         </section>
+        </>
+        
     )
 }
 

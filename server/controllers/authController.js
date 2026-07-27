@@ -122,7 +122,8 @@ export const refreshToken = catchAsync(async (req, res, next) => {
       jti: nextJti,
       userId: decoded.userId,
       email: decoded.email,
-      username: decoded.username
+      username: decoded.username,
+      roles: decoded.roles
   };
 
   const newRefreshToken = jwt.sign(

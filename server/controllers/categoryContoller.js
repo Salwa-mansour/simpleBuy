@@ -3,6 +3,7 @@ import * as categoryService from "../servises/categoryService.js";
 
 // --- CREATE ---
 export const createNewCategory = catchAsync(async (req, res, next) => {
+ 
   const newCategory = {
     name: req.body.categoryName,
     description: req.body.description
@@ -21,6 +22,7 @@ export const getAllCategories = catchAsync(async (req, res, next) => {
 // --- READ (GET ONE BY ID) ---
 export const getCategoryById = catchAsync(async (req, res, next) => {
   const { id } = req.params;
+
   const category = await categoryService.getCategoryById(id);
 
   if (!category) {

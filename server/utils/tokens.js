@@ -10,7 +10,8 @@ export const generateAndSendTokens = async (user, res) => {
     jti,
     userId: user._id, 
     email: user.email, 
-    username: user.name
+    username: user.name,
+    roles: user.roles
   };
 
   const refreshToken = jwt.sign(

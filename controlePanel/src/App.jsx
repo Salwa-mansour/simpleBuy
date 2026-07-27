@@ -8,7 +8,9 @@ import RequireAuth from "./components/RequireAuth";
 import PersistLogin from "./components/PersistLogin";
 import Home from "./components/Home";
 import Missing from "./components/Missing";
-import CategoryList from "components/category/List.jsx"
+import CategoryList from "./components/category/List.jsx"
+import CreateCategory from "./components/category/Create.jsx"
+import EditCategory from "./components/category/Edit.jsx"
 
 
 function App() {
@@ -27,6 +29,8 @@ function App() {
           <Route path="/" element={<Layout />}>
                  <Route path="/" element={<Home />} />
                  <Route path="categories" element={<CategoryList/>} />
+                 <Route path="createcategory" element={<CreateCategory/>} />
+                 <Route path="category/:id/edit" element={<EditCategory/>} />
            </Route>
 
         </Route> 

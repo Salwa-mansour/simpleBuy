@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import useFetchOneItem from "../../hooks/useFetchOneItem";
-import { useParams, useNavigate } from "react-router";
+import { useParams, useNavigate } from "react-router-dom";
 import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 
 function EditCategory() {
@@ -12,7 +12,6 @@ function EditCategory() {
   const [newDescription, setNewDescription] = useState("");
   const [updateError, setUpdateError] = useState(null);
   const [updating, setUpdating] = useState(false);
-
   useEffect(() => {
     if (category) {
       setNewName(category.name || "");

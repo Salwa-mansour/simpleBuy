@@ -1,30 +1,23 @@
 import { useEffect, useState } from 'react';
 import useFetchItems from '../../hooks/useFetchItems';
 import useDeleteItem from '../../hooks/useDeleteItem';
-import { useNavigate, useLocation, Link } from 'react-router'; 
+import { useNavigate, useLocation, Link } from 'react-router-dom'; 
 import { faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const Categories = () => {
     const [fetchedCategories, loading, error] = useFetchItems('/category');
     const [categoryList, setCategoryList] = useState([]);
-    const [lastDeletedId, setLastDeletedId] = useState(null);
 
     const navigate = useNavigate();
     const location = useLocation();
-
-    // Callback passed to useDeleteItem to remove item from UI state upon successful deletion
-    const handleDeleteSuccess = () => {
-        if (lastDeletedId) {
-            setCategoryList(prev => prev.filter(cat => (cat._id || cat.id) !== lastDeletedId));
-            setLastDeletedId(null);
-        }
+    // Pass a callback to useDeleteItem that accepts the deleted ID directly!
+    const handleDeleteSuccess = (deletedId) => {
+        setCategoryList(prev => prev.filter(cat => String(cat._id || cat.id) !== String(deletedId)));
     };
 
-    // Instantiate your custom hook
     const deleteItem = useDeleteItem('/category', handleDeleteSuccess);
 
-    // Keep local list in sync with fetched items
     useEffect(() => {
         if (fetchedCategories) {
             setCategoryList(fetchedCategories);
@@ -37,13 +30,12 @@ const Categories = () => {
         }
     }, [error, navigate, location]);
 
-    const handleDeleteClick = (id) => {
-        setLastDeletedId(id);
-        deleteItem(id);
+    const handleDeleteClick = async (id) => {
+        // If your useDeleteItem hook takes (id, onSuccessCallback) directly when called:
+        deleteItem(id); 
     };
 
     if (loading) return <p>Loading Categories...</p>;
-
     if (error) return <p style={{ color: 'red' }}>Error fetching Categories: {typeof error === 'string' ? error : error.message}</p>;
 
     return (
@@ -59,12 +51,10 @@ const Categories = () => {
                             <li key={categoryId} style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '8px' }}>
                                 <strong>{category.name}</strong>
                                 
-                                {/* Edit Link */}
-                                <Link to={`/categories/${categoryId}/edit`} title="Edit Category">
+                                <Link to={`/category/${categoryId}/edit`} title="Edit Category">
                                     <FontAwesomeIcon icon={faEdit} />
                                 </Link>
 
-                                {/* Delete Button */}
                                 <button 
                                     onClick={() => handleDeleteClick(categoryId)} 
                                     style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'red' }}
