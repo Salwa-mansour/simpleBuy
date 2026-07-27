@@ -5,7 +5,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-const Categories = () => {
+const CategoryList = () => {
     const [fetchedCategories, loading, error] = useFetchItems('/category');
     const [categoryList, setCategoryList] = useState([]);
 
@@ -73,4 +73,4 @@ const Categories = () => {
     );
 };
 
-export default Categories;
+export default CategoryList;

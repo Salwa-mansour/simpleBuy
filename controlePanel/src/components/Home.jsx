@@ -1,5 +1,5 @@
 import { useAuth } from "../hooks/useAuth";
-import Nav from "./Nav";
+
 
 
 const Home = () => {
@@ -7,7 +7,7 @@ const Home = () => {
 
     return (
         <>
-        <Nav/>
+      
         <section>
             <h1>Home</h1>
             <br />

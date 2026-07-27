@@ -9,6 +9,9 @@ function Nav() {
                 <Link to="/categories">categories</Link>
             </li>
             <li>
+                <Link to="/products">products</Link>
+            </li>
+            <li>
                 <LogoutBtn/>
             </li>
         </ul>

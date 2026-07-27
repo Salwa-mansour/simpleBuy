@@ -11,7 +11,9 @@ import Missing from "./components/Missing";
 import CategoryList from "./components/category/List.jsx"
 import CreateCategory from "./components/category/Create.jsx"
 import EditCategory from "./components/category/Edit.jsx"
-
+import ProductList from './components/product/List.jsx';
+import CreateProduct from './components/product/Create.jsx';
+import EditProduct from './components/product/Edit.jsx';
 
 function App() {
  
@@ -31,6 +33,9 @@ function App() {
                  <Route path="categories" element={<CategoryList/>} />
                  <Route path="createcategory" element={<CreateCategory/>} />
                  <Route path="category/:id/edit" element={<EditCategory/>} />
+                 <Route path="products" element={<ProductList/>} />
+                 <Route path="createproduct" element={<CreateProduct/>} />
+                 <Route path="product/:id/edit" element={<EditProduct/>}/>
            </Route>
 
         </Route> 

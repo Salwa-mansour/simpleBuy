@@ -1,116 +1,98 @@
-import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
-import useFetchOneItem from "../../hooks/useFetchOneItem";
-import useFetchItems from "../../hooks/useFetchItems";
-import useAxiosPrivate from "../../hooks/useAxiosPrivate";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import useAxiosPrivate from '../../hooks/useAxiosPrivate';
+import useFetchItems from '../../hooks/useFetchItems';
 
-function EditProduct() {
-    const { id } = useParams();
+function CreateProduct() {
     const navigate = useNavigate();
     const axiosPrivate = useAxiosPrivate();
 
-    const [product, loading, fetchError] = useFetchOneItem("product", id);
-    const [categories, categoriesLoading] = useFetchItems("/category");
+    // Fetch categories for the select dropdown
+    const [categories, categoriesLoading, categoriesError] = useFetchItems('/category');
 
-    const [title, setTitle] = useState("");
-    const [description, setDescription] = useState("");
-    const [price, setPrice] = useState("");
-    const [stock, setStock] = useState("");
-    const [category, setCategory] = useState("");
-    
-    // Distinguish existing image URL from a newly selected file
-    const [existingImageUrl, setExistingImageUrl] = useState("");
-    const [newImageFile, setNewImageFile] = useState(null);
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
+    const [price, setPrice] = useState('');
+    const [stock, setStock] = useState('1');
+    const [category, setCategory] = useState('');
+    const [imageFile, setImageFile] = useState(null);
 
-    const [updateError, setUpdateError] = useState(null);
-    const [updating, setUpdating] = useState(false);
-
-    useEffect(() => {
-        if (product) {
-            setTitle(product.title || "");
-            setDescription(product.description || "");
-            setPrice(product.price !== undefined ? product.price : "");
-            setStock(product.stock !== undefined ? product.stock : "");
-            setCategory(product.category?._id || product.category || "");
-            setExistingImageUrl(product.imageUrl || "");
-        }
-    }, [product]);
+    const [createError, setCreateError] = useState(null);
+    const [submitting, setSubmitting] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setUpdating(true);
-        setUpdateError(null);
+        setSubmitting(true);
+        setCreateError(null);
 
-        let finalImageUrl = existingImageUrl;
+        let uploadedImageUrl = '';
 
-        // Step 1: If a new image was selected, upload it to Cloudinary
-        if (newImageFile) {
+        // Step 1: Upload image to Cloudinary if selected
+        if (imageFile) {
             const ONE_MEGABYTE = 1 * 1024 * 1024;
-            if (newImageFile.size > ONE_MEGABYTE) {
+            if (imageFile.size > ONE_MEGABYTE) {
                 alert("File is too large! Please choose an image smaller than 1MB.");
-                setUpdating(false);
+                setSubmitting(false);
                 return;
             }
 
             try {
+                // Fetch secure signature parameters from backend
                 const sigResponse = await axiosPrivate.get('/product/generate-upload-signature');
                 const { signature, timestamp, apiKey, cloudName } = sigResponse.data;
-
+             
                 const formData = new FormData();
-                formData.append('file', newImageFile);
+                formData.append('file', imageFile);
                 formData.append('api_key', apiKey);
                 formData.append('timestamp', timestamp);
                 formData.append('signature', signature);
-                formData.append('folder', 'simleBuy');
+                formData.append('folder', 'simleBuy'); // Adjust folder name if needed
                 formData.append('transformation', 'w_400,c_limit');
 
+                // Upload directly to Cloudinary
                 const cloudResponse = await axios.post(
                     `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
                     formData
                 );
 
-                finalImageUrl = cloudResponse.data.secure_url;
+                uploadedImageUrl = cloudResponse.data.secure_url;
             } catch (err) {
                 console.error('Cloudinary upload failed:', err);
-                setUpdateError('Failed to upload new image. Please try again.');
-                setUpdating(false);
+                setCreateError('Failed to upload image. Please try again.');
+                setSubmitting(false);
                 return;
             }
         }
 
-        // Step 2: Send updated data to backend
+        // Step 2: Send Product payload to backend
         try {
-            const updatedProductData = {
+            const productData = {
                 title,
                 description,
                 price: Number(price),
                 stock: Number(stock),
                 category,
-                imageUrl: finalImageUrl
+                imageUrl: uploadedImageUrl
             };
 
-            await axiosPrivate.put(`/product/${id}`, updatedProductData);
+            await axiosPrivate.post('/product/create', productData);
             navigate('/products');
         } catch (err) {
             console.error(err);
-            const serverMessage = err.response?.data?.message || err.message || "Failed to update product";
-            setUpdateError(serverMessage);
+            const serverMessage = err.response?.data?.message || err.message || "Failed to create product";
+            setCreateError(serverMessage);
         } finally {
-            setUpdating(false);
+            setSubmitting(false);
         }
     };
 
-    if (loading) return <p>Loading product details...</p>;
-
     return (
         <section>
-            <h2>Edit Product</h2>
+            <h2>Create New Product</h2>
 
-            {fetchError && (
-                <p style={{ color: 'red' }}>
-                    {typeof fetchError === 'string' ? fetchError : fetchError.message || "Failed to load product"}
-                </p>
+            {categoriesError && (
+                <p style={{ color: 'red' }}>Failed to load categories for dropdown.</p>
             )}
 
             <form onSubmit={handleSubmit}>
@@ -177,36 +159,24 @@ function EditProduct() {
                     </select>
                 </div>
 
-                {/* Show existing image preview if available */}
-                {existingImageUrl && (
-                    <div style={{ margin: '10px 0' }}>
-                        <p style={{ margin: '0 0 5px 0' }}>Current Image:</p>
-                        <img 
-                            src={existingImageUrl} 
-                            alt="Current Product" 
-                            style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px' }} 
-                        />
-                    </div>
-                )}
-
                 <div>
-                    <label htmlFor="image">Change Product Image:</label>
+                    <label htmlFor="image">Product Image:</label>
                     <input
                         type="file"
                         id="image"
                         accept="image/*"
-                        onChange={(e) => setNewImageFile(e.target.files[0])}
+                        onChange={(e) => setImageFile(e.target.files[0])}
                     />
                 </div>
 
-                <button type="submit" disabled={updating}>
-                    {updating ? 'Uploading & Updating...' : 'Update Product'}
+                <button type="submit" disabled={submitting}>
+                    {submitting ? 'Uploading & Creating...' : 'Create Product'}
                 </button>
             </form>
 
-            {updateError && <p style={{ color: 'red' }}>{updateError}</p>}
+            {createError && <p style={{ color: 'red' }}>{createError}</p>}
         </section>
     );
 }
 
-export default EditProduct;
+export default CreateProduct;
