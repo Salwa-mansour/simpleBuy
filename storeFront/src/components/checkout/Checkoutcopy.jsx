@@ -3,10 +3,10 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useCart } from '../../context/CartProvider';
 import { useAuth } from '../../hooks/useAuth';
 import useAxiosPrivate from '../../hooks/useAxiosPrivate';
-
+import PayPalScriptProvider from '../../context/PayPalScriptProvider';
 import PayPalCheckoutSection from './PaypalCheckoutSection';
 
-function Checkout() {
+function Checkoutcopy() {
     const { cart, totalPrice, clearCart } = useCart();
     const { auth } = useAuth();
     const navigate = useNavigate();
@@ -107,6 +107,7 @@ function Checkout() {
                 shippingInfo
             );
 
+            // Update local state with updated array returned from backend
             const updatedAddresses = response.data?.addresses || [];
             setSavedAddresses(updatedAddresses);
 
@@ -156,25 +157,50 @@ function Checkout() {
 
     if (orderComplete) {
         return (
-            <div>
-                <div>🎉</div>
-                <h2>Order Confirmed!</h2>
-                <p>
+            <div style={{ maxWidth: '600px', margin: '3rem auto', textAlign: 'center', padding: '2rem' }}>
+                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎉</div>
+                <h2 style={{ color: '#2b6cb0', marginBottom: '1rem' }}>Order Confirmed!</h2>
+                <p style={{ color: '#4a5568', marginBottom: '1.5rem' }}>
                     Thank you, <strong>{shippingInfo.fullName}</strong>. We've received your order and will process it shortly.
                 </p>
-                <button onClick={() => navigate('/')}>
+                <button
+                    onClick={() => navigate('/')}
+                    style={{
+                        backgroundColor: '#3182ce',
+                        color: '#fff',
+                        border: 'none',
+                        padding: '0.75rem 1.5rem',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontWeight: '600',
+                    }}
+                >
                     Continue Shopping
                 </button>
             </div>
         );
     }
 
-    if (!cart || cart.length === 0) {
+    if (cart.length === 0) {
         return (
-            <div>
+            <div style={{ maxWidth: '600px', margin: '3rem auto', textAlign: 'center', padding: '2rem' }}>
                 <h3>Your cart is empty</h3>
-                <p>Add some items to your cart before proceeding to checkout.</p>
-                <Link to="/">Browse Products</Link>
+                <p style={{ color: '#718096', marginBottom: '1.5rem' }}>
+                    Add some items to your cart before proceeding to checkout.
+                </p>
+                <Link
+                    to="/"
+                    style={{
+                        backgroundColor: '#3182ce',
+                        color: '#fff',
+                        textDecoration: 'none',
+                        padding: '0.5rem 1rem',
+                        borderRadius: '4px',
+                        fontWeight: '500',
+                    }}
+                >
+                    Browse Products
+                </Link>
             </div>
         );
     }
@@ -183,27 +209,60 @@ function Checkout() {
     const finalTotal = totalPrice + shippingFee;
 
     return (
-      
-            <section>
-                <h2>Checkout</h2>
+        <PayPalScriptProvider>
+            <section style={{ maxWidth: '1100px', margin: '2rem auto', padding: '0 1rem' }}>
+                <h2 style={{ marginBottom: '1.5rem', borderBottom: '2px solid #edf2f7', paddingBottom: '0.75rem' }}>
+                    Checkout
+                </h2>
 
                 {statusMessage && (
-                    <div className={`status-${statusMessage.type}`}>
+                    <div
+                        style={{
+                            padding: '0.75rem 1rem',
+                            marginBottom: '1rem',
+                            borderRadius: '4px',
+                            backgroundColor: statusMessage.type === 'success' ? '#c6f6d5' : '#fed7d7',
+                            color: statusMessage.type === 'success' ? '#22543d' : '#742a2a',
+                        }}
+                    >
                         {statusMessage.text}
                     </div>
                 )}
 
-                <div>
+                <div
+                    style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+                        gap: '2rem',
+                        alignItems: 'start',
+                    }}
+                >
                     {/* Left Column: Shipping Address Details */}
-                    <div>
-                        <h3>Shipping Details</h3>
+                    <div
+                        style={{
+                            backgroundColor: '#ffffff',
+                            border: '1px solid #e2e8f0',
+                            borderRadius: '8px',
+                            padding: '1.5rem',
+                            color: 'black',
+                        }}
+                    >
+                        <h3 style={{ marginBottom: '1rem', fontSize: '1.15rem' }}>Shipping Details</h3>
 
                         {/* Saved Addresses Dropdown */}
                         {savedAddresses.length > 0 && (
-                            <div>
-                                <label htmlFor="saved-address-select">Choose Saved Address</label>
+                            <div style={{ marginBottom: '1.25rem' }}>
+                                <label
+                                    style={{
+                                        display: 'block',
+                                        fontSize: '0.875rem',
+                                        fontWeight: '500',
+                                        marginBottom: '0.25rem',
+                                    }}
+                                >
+                                    Choose Saved Address
+                                </label>
                                 <select
-                                    id="saved-address-select"
                                     value={selectedAddressId}
                                     onChange={(e) => {
                                         const addressId = e.target.value;
@@ -214,6 +273,13 @@ function Checkout() {
                                             const selected = savedAddresses.find((a) => a._id === addressId);
                                             if (selected) fillFormWithAddress(selected);
                                         }
+                                    }}
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.5rem',
+                                        borderRadius: '4px',
+                                        border: '1px solid #cbd5e0',
+                                        backgroundColor: '#ffffff',
                                     }}
                                 >
                                     {savedAddresses.map((addr) => (
@@ -227,75 +293,94 @@ function Checkout() {
                         )}
 
                         <form onSubmit={handleSubmitOrder} id="checkout-form">
-                            <div>
-                                <label htmlFor="fullName">Full Name *</label>
+                            <div style={{ marginBottom: '1rem' }}>
+                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.25rem' }}>
+                                    Full Name *
+                                </label>
                                 <input
-                                    id="fullName"
                                     type="text"
                                     name="fullName"
                                     required
                                     value={shippingInfo.fullName}
                                     onChange={handleInputChange}
+                                    style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #cbd5e0' }}
                                 />
                             </div>
 
-                            <div>
-                                <label htmlFor="email">Email Address</label>
+                            <div style={{ marginBottom: '1rem' }}>
+                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.25rem' }}>
+                                    Email Address
+                                </label>
                                 <input
-                                    id="email"
                                     type="email"
                                     name="email"
                                     value={auth?.email || ''}
                                     disabled
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.5rem',
+                                        borderRadius: '4px',
+                                        border: '1px solid #cbd5e0',
+                                        backgroundColor: '#edf2f7',
+                                        cursor: 'not-allowed',
+                                    }}
                                 />
                             </div>
 
-                            <div>
-                                <label htmlFor="address">Street Address *</label>
+                            <div style={{ marginBottom: '1rem' }}>
+                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.25rem' }}>
+                                    Street Address *
+                                </label>
                                 <input
-                                    id="address"
                                     type="text"
                                     name="address"
                                     required
                                     value={shippingInfo.address}
                                     onChange={handleInputChange}
+                                    style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #cbd5e0' }}
                                 />
                             </div>
 
-                            <div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                                 <div>
-                                    <label htmlFor="city">City *</label>
+                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.25rem' }}>
+                                        City *
+                                    </label>
                                     <input
-                                        id="city"
                                         type="text"
                                         name="city"
                                         required
                                         value={shippingInfo.city}
                                         onChange={handleInputChange}
+                                        style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #cbd5e0' }}
                                     />
                                 </div>
                                 <div>
-                                    <label htmlFor="postalCode">Postal Code *</label>
+                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.25rem' }}>
+                                        Postal Code *
+                                    </label>
                                     <input
-                                        id="postalCode"
                                         type="text"
                                         name="postalCode"
                                         required
                                         value={shippingInfo.postalCode}
                                         onChange={handleInputChange}
+                                        style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #cbd5e0' }}
                                     />
                                 </div>
                             </div>
 
-                            <div>
-                                <label htmlFor="country">Country *</label>
+                            <div style={{ marginBottom: '1rem' }}>
+                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.25rem' }}>
+                                    Country *
+                                </label>
                                 <input
-                                    id="country"
                                     type="text"
                                     name="country"
                                     required
                                     value={shippingInfo.country}
                                     onChange={handleInputChange}
+                                    style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #cbd5e0' }}
                                 />
                             </div>
 
@@ -305,6 +390,18 @@ function Checkout() {
                                     type="button"
                                     onClick={handleUpdateAddress}
                                     disabled={isUpdatingAddress}
+                                    style={{
+                                        marginTop: '0.5rem',
+                                        display: 'block',
+                                        width: '100%',
+                                        backgroundColor: '#4a5568',
+                                        color: 'white',
+                                        border: 'none',
+                                        padding: '0.5rem',
+                                        borderRadius: '4px',
+                                        cursor: isUpdatingAddress ? 'not-allowed' : 'pointer',
+                                        fontWeight: '500',
+                                    }}
                                 >
                                     {isUpdatingAddress ? 'Updating Address...' : 'Save Changes to This Address'}
                                 </button>
@@ -312,14 +409,14 @@ function Checkout() {
 
                             {/* Save checkbox when typing a new address */}
                             {(savedAddresses.length === 0 || selectedAddressId === 'new') && (
-                                <div>
+                                <div style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                     <input
                                         type="checkbox"
                                         id="saveAddress"
                                         checked={saveAddressForFuture}
                                         onChange={(e) => setSaveAddressForFuture(e.target.checked)}
                                     />
-                                    <label htmlFor="saveAddress">
+                                    <label htmlFor="saveAddress" style={{ fontSize: '0.875rem', cursor: 'pointer' }}>
                                         Save this address to my profile for future orders
                                     </label>
                                 </div>
@@ -328,19 +425,36 @@ function Checkout() {
                     </div>
 
                     {/* Right Column: Order Summary */}
-                    <div>
-                        <h3>Order Summary</h3>
+                    <div
+                        style={{
+                            backgroundColor: '#f7fafc',
+                            border: '1px solid #e2e8f0',
+                            borderRadius: '8px',
+                            padding: '1.5rem',
+                            color: 'black',
+                        }}
+                    >
+                        <h3 style={{ marginBottom: '1rem', fontSize: '1.15rem' }}>Order Summary</h3>
 
-                        <div>
+                        <div style={{ maxHeight: '240px', overflowY: 'auto', marginBottom: '1rem', paddingRight: '0.5rem' }}>
                             {cart.map((item) => {
                                 const itemId = item._id || item.id;
                                 return (
-                                    <div key={itemId}>
+                                    <div
+                                        key={itemId}
+                                        style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            padding: '0.5rem 0',
+                                            borderBottom: '1px dashed #e2e8f0',
+                                        }}
+                                    >
                                         <div>
-                                            <p>{item.title}</p>
-                                            <span>Qty: {item.quantity}</span>
+                                            <p style={{ margin: 0, fontWeight: '500', fontSize: '0.9rem' }}>{item.title}</p>
+                                            <span style={{ fontSize: '0.8rem', color: '#718096' }}>Qty: {item.quantity}</span>
                                         </div>
-                                        <span>
+                                        <span style={{ fontWeight: '600', fontSize: '0.9rem' }}>
                                             ${(item.price * item.quantity).toFixed(2)}
                                         </span>
                                     </div>
@@ -348,33 +462,57 @@ function Checkout() {
                             })}
                         </div>
 
-                        <div>
-                            <div>
-                                <span>Subtotal</span>
+                        <div style={{ borderTop: '1px solid #cbd5e0', paddingTop: '1rem', marginTop: '1rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                                <span style={{ color: '#4a5568' }}>Subtotal</span>
                                 <span>${totalPrice.toFixed(2)}</span>
                             </div>
-                            <div>
-                                <span>Shipping</span>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                                <span style={{ color: '#4a5568' }}>Shipping</span>
                                 <span>{shippingFee === 0 ? 'FREE' : `$${shippingFee.toFixed(2)}`}</span>
                             </div>
                             {shippingFee === 0 && (
-                                <p>Qualified for Free Shipping!</p>
+                                <p style={{ fontSize: '0.75rem', color: '#38a169', margin: '0 0 0.5rem 0' }}>
+                                    Qualified for Free Shipping!
+                                </p>
                             )}
-                            <div>
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    fontSize: '1.15rem',
+                                    fontWeight: 'bold',
+                                    marginTop: '1rem',
+                                    paddingTop: '0.75rem',
+                                    borderTop: '2px solid #e2e8f0',
+                                }}
+                            >
                                 <span>Total</span>
-                                <span>${finalTotal.toFixed(2)}</span>
+                                <span style={{ color: '#2b6cb0' }}>${finalTotal.toFixed(2)}</span>
                             </div>
                         </div>
 
                         {/* Payment & Submission */}
-                        <div>
-                            {/* <button
+                        <div style={{ marginTop: '1.5rem' }}>
+                            <button
                                 type="submit"
                                 form="checkout-form"
                                 disabled={isSubmitting}
+                                style={{
+                                    width: '100%',
+                                    backgroundColor: isSubmitting ? '#a0aec0' : '#38a169',
+                                    color: '#ffffff',
+                                    border: 'none',
+                                    padding: '0.75rem',
+                                    borderRadius: '6px',
+                                    fontWeight: 'bold',
+                                    fontSize: '1rem',
+                                    cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                                    marginBottom: '1rem',
+                                }}
                             >
                                 {isSubmitting ? 'Processing Order...' : 'Place Order'}
-                            </button> */}
+                            </button>
 
                             <PayPalCheckoutSection
                                 total={finalTotal}
@@ -389,8 +527,8 @@ function Checkout() {
                     </div>
                 </div>
             </section>
- 
+        </PayPalScriptProvider>
     );
 }
 
-export default Checkout;
+export default Checkoutcopy;

@@ -5,7 +5,7 @@ import { useAuth } from "../hooks/useAuth";
 
 const Layout = () => {
       const { auth } = useAuth();
-    console.log(auth)
+    // console.log(auth)
     return (
         <main className="App">
             <Nav/>
