@@ -9,6 +9,7 @@ import PersistLogin from "./components/PersistLogin";
 import Home from "./components/Home";
 import Missing from "./components/Missing";
 import ProductDetails from './components/product/Detail';
+import Checkout from './components/checkout/Checkout';
 
 
 function App() {
@@ -19,17 +20,20 @@ function App() {
        <Route path="login" element={<Login />} />
        <Route path="register" element={<Register />} />
        <Route path="/oauth-callback" element={<OAuthCallback />} />
-            
-       
+
+       <Route path="/" element={<Layout />}>         
+          <Route path="/" element={<Home />} />
+          <Route path="/products/:id" element={<ProductDetails />} />  
+       </Route>
          
          {/* Protected Application Routes */}
           <Route element={<PersistLogin />}>
            <Route element={<RequireAuth />}>
           
                 <Route path="/" element={<Layout />}>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/products/:id" element={<ProductDetails />} />
-              </Route>
+                  
+                    <Route path="checkout" element={<Checkout/>} />
+                </Route>
         
           </Route> 
        </Route>

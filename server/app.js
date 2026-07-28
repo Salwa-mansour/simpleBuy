@@ -12,8 +12,10 @@ import passport from 'passport';
 
 import connectDB from './config/dbConnection.js';
 import authRouter from './routes/authRouter.js';
-import categoryRouter from './routes/categoryRouter.js'
-import productRouter from './routes/productRouter.js'
+import categoryRouter from './routes/categoryRouter.js';
+import productRouter from './routes/productRouter.js';
+import orderRouter from "./routes/orderRouter.js";
+import userRouter from "./routes/userRouter.js"
 import './config/passport.js';
 
 const app = express();
@@ -43,6 +45,8 @@ app.get("/", (req, res) => {
 app.use("/auth", authRouter);
 app.use("/category",categoryRouter);
 app.use("/product",productRouter);
+app.use("/order",orderRouter);
+app.use("/user",userRouter)
 
 // --- 1. 404 CATCH-ALL HANDLER (Must be after defined routes) ---
 app.use('/{*splat}', (req, res) => {

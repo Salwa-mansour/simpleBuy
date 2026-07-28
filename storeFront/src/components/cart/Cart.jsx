@@ -1,10 +1,11 @@
-import { Link } from 'react-router-dom';
+import { Link,useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartProvider';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faArrowLeft, faShoppingBag } from '@fortawesome/free-solid-svg-icons';
 
 const Cart = () => {
-    const { cart, removeFromCart, updateQuantity, clearCart, totalPrice, totalItems } = useCart();
+    const { cart, removeFromCart, updateQuantity, clearCart, totalPrice, totalItems,setShowCart } = useCart();
+    const navigate = useNavigate();
 
     if (cart.length === 0) {
         return (
@@ -139,21 +140,25 @@ const Cart = () => {
                         <span style={{ color: '#2b6cb0' }}>${totalPrice.toFixed(2)}</span>
                     </div>
 
-                    <Link
-                        to="/checkout"
-                        style={{
-                            display: 'block',
-                            textAlign: 'center',
-                            backgroundColor: '#38a169',
-                            color: '#fff',
-                            padding: '0.75rem',
-                            borderRadius: '4px',
-                            textDecoration: 'none',
-                            fontWeight: 'bold'
-                        }}
-                    >
-                        Proceed to Checkout
-                    </Link>
+                                <button
+                                onClick={() => {
+                                    setShowCart(false);
+                                    navigate('/checkout');
+                                }}
+                                style={{
+                                    width: '100%',
+                                    backgroundColor: '#3182ce',
+                                    color: '#fff',
+                                    padding: '0.6rem',
+                                    borderRadius: '4px',
+                                    border: 'none',
+                                    fontWeight: 'bold',
+                                    cursor: 'pointer',
+                                    marginTop: '1rem',
+                                }}
+                                >
+                                Proceed to Checkout
+                                </button>
                 </div>
             </div>
         </section>

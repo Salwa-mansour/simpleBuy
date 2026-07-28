@@ -23,7 +23,7 @@ function LogoutBtn() {
       console.error("Backend failed to clear session:", err);
     } finally {
       setIsLogingOut(false);
-      navigate("/login", { replace: true });
+      navigate("/", { replace: true });
     }
   };
 
