@@ -2,10 +2,81 @@ import Order from '../models/Order.js';
 import Product from '../models/Product.js';
 import User from '../models/User.js';
 
-/**
- * Validates cart items against the database, calculates total amount,
- * optionally saves user address, and creates a pending Order record.
- */
+
+export const createBendingOrderService =async(userId,shippingAddress,orderItems,totalAmount)=>{
+  // 4. Create and persist the new Order
+
+  const newOrder = await Order.create({
+    user: userId,
+    items: orderItems,
+    shippingAddress: {
+      fullName: shippingAddress.fullName,
+      address: shippingAddress.address,
+      city: shippingAddress.city,
+      postalCode: shippingAddress.postalCode,
+      country: shippingAddress.country,
+    },
+    totalAmount,
+   
+    status: 'pending',
+  });
+
+  return newOrder;
+}
+
+
+export const vierifyAndUpdateOrder = async ({ userId, orderId, paymentData }) => {
+  // 1. Find order by ID
+  const order = await Order.findById(orderId);
+
+  if (!order) {
+    const error = new Error('Order not found.');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  // 2. Authorization check: ensure order belongs to the authenticated user
+  if (order.user.toString() !== userId.toString()) {
+    const error = new Error('Not authorized to update this order.');
+    error.statusCode = 403;
+    throw error;
+  }
+
+  // 3. Prevent duplicate updates if order is already processed
+  if (order.status === 'paid') {
+    return order; // Already completed, return early safely
+  }
+
+  // 4. Extract PayPal details
+  const captureStatus = paymentData.status; // e.g. 'COMPLETED'
+  const paymentDetails = paymentData.purchase_units?.[0]?.payments?.captures?.[0];
+  const detailedStatus = paymentDetails?.status || captureStatus; // fallback to top status
+
+  // 5. Update payment details
+  order.paymentInfo.id = paymentData.id || paymentDetails?.id;
+  order.paymentInfo.status = detailedStatus; // 'COMPLETED', 'PENDING', 'DECLINED', etc.
+
+  // 6. Handle status transition
+  if (captureStatus === 'COMPLETED' || detailedStatus === 'COMPLETED') {
+    order.status = 'paid'; // Set top-level order status to paid
+
+    // Option A: Deduct stock from Product model upon successful payment
+    for (const item of order.items) {
+      await Product.findByIdAndUpdate(item.product, {
+        $inc: { stock: -item.quantity }
+      });
+    }
+  } else if (['DECLINED', 'FAILED'].includes(detailedStatus)) {
+    order.status = 'failed';
+  } else if (detailedStatus === 'PENDING') {
+    order.status = 'pending';
+  }
+
+  // 7. Save updated order document
+  await order.save();
+
+  return order;
+};
 export const createOrderService = async ({ userId, items, shippingAddress, paymentProvider, saveAddress }) => {
   // 1. Fetch products from DB to verify existence and get real server-side prices
   const productIds = items.map((item) => item.product);

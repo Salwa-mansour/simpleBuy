@@ -1,16 +1,6 @@
 import mongoose from 'mongoose';
 import ROLES_LIST from '../config/rolesList.js';
 
-
-const userAddressSchema = new mongoose.Schema({
-  fullName: { type: String, required: true },
-  address: { type: String, required: true },
-  city: { type: String, required: true },
-  postalCode: { type: String, required: true },
-  country: { type: String, required: true },
-  isDefault: { type: Boolean, default: false }
-});
-
 const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
@@ -19,10 +9,16 @@ const userSchema = new mongoose.Schema(
     roles: {
       type: [Number],
       enum: Object.values(ROLES_LIST),
-      default: [ROLES_LIST.CUSTOMER], // New signups start as CUSTOMER
+      default: [ROLES_LIST.CUSTOMER],
     },
-    // Array of saved addresses for checkout convenience
-    addresses: [userAddressSchema],
+    // Single nested address object instead of an array
+    address: {
+      fullName: { type: String, default: null },
+      address: { type: String, default: null },
+      city: { type: String, default: null },
+      postalCode: { type: String, default: null },
+      country: { type: String, default: null },
+    },
   },
   { timestamps: true }
 );
