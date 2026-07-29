@@ -30,6 +30,7 @@ function PayPalCheckoutSection({ shippingInfo, setOrderComplete, setStatusMessag
   };
 
   const handleApprove = async (data) => {
+    console.log(`aprove data ${data}`)
     try {
       const response = await axiosPrivate.post('/payment/capture-paypal-order', {
         paypalOrderId: data.orderID,
