@@ -7,6 +7,7 @@ const addressSnapshotSchema = new mongoose.Schema(
     city: { type: String, required: true },
     postalCode: { type: String, required: true },
     country: { type: String, required: true },
+    state: { type: String, default: null }
   },
   { _id: false } // No separate ID needed for embedded address snapshots
 );
