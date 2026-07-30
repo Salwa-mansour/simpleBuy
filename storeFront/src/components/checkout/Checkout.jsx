@@ -3,164 +3,88 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useCart } from '../../context/CartProvider';
 import { useAuth } from '../../hooks/useAuth';
 import useAxiosPrivate from '../../hooks/useAxiosPrivate';
+import useInput from '../../hooks/useInput';
 
 import PayPalCheckoutSection from './PaypalCheckoutSection';
 
 function Checkout() {
-    const { cart, totalPrice, clearCart } = useCart();
+    const { cart, totalPrice } = useCart();
     const { auth } = useAuth();
     const navigate = useNavigate();
     const axiosPrivate = useAxiosPrivate();
 
-    // Saved address management state
-    const [savedAddresses, setSavedAddresses] = useState([]);
-    const [selectedAddressId, setSelectedAddressId] = useState('new');
-    const [saveAddressForFuture, setSaveAddressForFuture] = useState(false);
+    // 1. Form state managed by custom useInput
+    const [fullName, setFullName, fullNameAttribs] = useInput('checkout_fullName', '');
+    const [address, setAddress, addressAttribs] = useInput('checkout_address', '');
+    const [city, setCity, cityAttribs] = useInput('checkout_city', '');
+    const [postalCode, setPostalCode, postalCodeAttribs] = useInput('checkout_postalCode', '');
+    const [country, setCountry, countryAttribs] = useInput('checkout_country', '');
 
-    // Form and submission state
-    const [shippingInfo, setShippingInfo] = useState({
-        fullName: '',
-        address: '',
-        city: '',
-        postalCode: '',
-        country: '',
-    });
-
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isUpdatingAddress, setIsUpdatingAddress] = useState(false);
+    // 2. Checkbox & logic flags
+    const [saveTheNewAddress, setSaveTheNewAddress] = useState(false);
+    const [hasExistingAddress, setHasExistingAddress] = useState(false);
+    
+    // UI states
     const [orderComplete, setOrderComplete] = useState(false);
     const [statusMessage, setStatusMessage] = useState(null);
 
-    // 1. Fetch saved addresses on mount
-    useEffect(() => {
-        let isMounted = true;
-        const controller = new AbortController();
+    // 3. Assemble shippingInfo payload
+    const shippingInfo = {
+        fullName,
+        address,
+        city,
+        postalCode,
+        country,
+    };
 
-        const fetchAddresses = async () => {
-            try {
-                const response = await axiosPrivate.get('/user/addresses', {
-                    signal: controller.signal,
-                });
+    // 4. Fetch server address on mount
+// 4. Fetch server address on mount, but prefer LocalStorage if present
+useEffect(() => {
+    let isMounted = true;
+    const controller = new AbortController();
 
-                if (isMounted) {
-                    const addresses = response.data?.addresses || [];
-                    setSavedAddresses(addresses);
+    const fetchAddress = async () => {
+        try {
+            const response = await axiosPrivate.get('/user/address', {
+                signal: controller.signal,
+            });
 
-                    if (addresses.length > 0) {
-                        const defaultAddr = addresses.find((addr) => addr.isDefault) || addresses[0];
-                        fillFormWithAddress(defaultAddr);
-                        setSelectedAddressId(defaultAddr._id);
-                    }
+            if (isMounted) {
+                const savedAddress = response.data;
+                
+                if (savedAddress && Object.keys(savedAddress).length > 0) {
+                    setHasExistingAddress(true);
+
+                    // ONLY fill from server if LocalStorage state is currently empty
+                    if (!fullName) setFullName(savedAddress.fullName || '');
+                    if (!address) setAddress(savedAddress.address || '');
+                    if (!city) setCity(savedAddress.city || '');
+                    if (!postalCode) setPostalCode(savedAddress.postalCode || '');
+                    if (!country) setCountry(savedAddress.country || '');
+                } else {
+                    setSaveTheNewAddress(true);
                 }
-            } catch (err) {
-                if (err.name === 'CanceledError' || err.code === 'ERR_CANCELED') return;
-                console.error('Failed to load saved addresses:', err);
             }
-        };
-
-        fetchAddresses();
-
-        return () => {
-            isMounted = false;
-            controller.abort();
-        };
-    }, [axiosPrivate]);
-
-    const fillFormWithAddress = (addr) => {
-        setShippingInfo({
-            fullName: addr.fullName || '',
-            address: addr.address || '',
-            city: addr.city || '',
-            postalCode: addr.postalCode || '',
-            country: addr.country || '',
-        });
-    };
-
-    const clearForm = () => {
-        setShippingInfo({
-            fullName: '',
-            address: '',
-            city: '',
-            postalCode: '',
-            country: '',
-        });
-    };
-
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setShippingInfo((prev) => ({
-            ...prev,
-            [name]: value,
-        }));
-    };
-
-    // 2. Update an existing address
-    const handleUpdateAddress = async () => {
-        if (!selectedAddressId || selectedAddressId === 'new') return;
-
-        setIsUpdatingAddress(true);
-        setStatusMessage(null);
-
-        try {
-            const response = await axiosPrivate.put(
-                `/user/addresses/${selectedAddressId}`,
-                shippingInfo
-            );
-
-            const updatedAddresses = response.data?.addresses || [];
-            setSavedAddresses(updatedAddresses);
-
-            setStatusMessage({ type: 'success', text: 'Address updated successfully!' });
         } catch (err) {
-            console.error('Failed to update address:', err.response?.data?.message || err.message);
-            setStatusMessage({
-                type: 'error',
-                text: err.response?.data?.message || 'Failed to update address.',
-            });
-        } finally {
-            setIsUpdatingAddress(false);
+            if (err.name === 'CanceledError' || err.code === 'ERR_CANCELED') return;
+            console.error('Failed to load saved address:', err);
         }
     };
 
-    // 3. Submit Order (Standard/COD or fallback submission)
-    const handleSubmitOrder = async (e) => {
-        if (e) e.preventDefault();
-        setIsSubmitting(true);
-        setStatusMessage(null);
+    fetchAddress();
 
-        try {
-            const orderData = {
-                items: cart.map((item) => ({
-                    product: item._id || item.id,
-                    quantity: item.quantity,
-                })),
-                shippingAddress: shippingInfo,
-                paymentProvider: 'paypal',
-                saveAddress: selectedAddressId === 'new' ? saveAddressForFuture : false,
-            };
-
-            await axiosPrivate.post('/order', orderData);
-
-            setOrderComplete(true);
-            clearCart();
-        } catch (err) {
-            console.error('Order creation failed:', err.response?.data?.message || err.message);
-            setStatusMessage({
-                type: 'error',
-                text: err.response?.data?.message || 'Order creation failed. Please try again.',
-            });
-        } finally {
-            setIsSubmitting(false);
-        }
+    return () => {
+        isMounted = false;
+        controller.abort();
     };
-
+}, [axiosPrivate]); // Keep dependencies clean
     if (orderComplete) {
         return (
             <div>
                 <div>🎉</div>
                 <h2>Order Confirmed!</h2>
                 <p>
-                    Thank you, <strong>{shippingInfo.fullName}</strong>. We've received your order and will process it shortly.
+                    Thank you, <strong>{fullName}</strong>. We've received your order and will process it shortly.
                 </p>
                 <button onClick={() => navigate('/')}>
                     Continue Shopping
@@ -179,217 +103,148 @@ function Checkout() {
         );
     }
 
-    const shippingFee = totalPrice > 50 ? 0 : 5.99;
-    const finalTotal = totalPrice + shippingFee;
-
     return (
-      
-            <section>
-                <h2>Checkout</h2>
+        <section>
+            <h2>Checkout</h2>
 
-                {statusMessage && (
-                    <div className={`status-${statusMessage.type}`}>
-                        {statusMessage.text}
-                    </div>
-                )}
+            {statusMessage && (
+                <div className={`status-${statusMessage.type}`}>
+                    {statusMessage.text}
+                </div>
+            )}
 
+            <div>
+                {/* Left Column: Shipping Form */}
                 <div>
-                    {/* Left Column: Shipping Address Details */}
-                    <div>
-                        <h3>Shipping Details</h3>
+                    <h3>Shipping Details</h3>
 
-                        {/* Saved Addresses Dropdown */}
-                        {savedAddresses.length > 0 && (
-                            <div>
-                                <label htmlFor="saved-address-select">Choose Saved Address</label>
-                                <select
-                                    id="saved-address-select"
-                                    value={selectedAddressId}
-                                    onChange={(e) => {
-                                        const addressId = e.target.value;
-                                        setSelectedAddressId(addressId);
-                                        if (addressId === 'new') {
-                                            clearForm();
-                                        } else {
-                                            const selected = savedAddresses.find((a) => a._id === addressId);
-                                            if (selected) fillFormWithAddress(selected);
-                                        }
-                                    }}
-                                >
-                                    {savedAddresses.map((addr) => (
-                                        <option key={addr._id} value={addr._id}>
-                                            {addr.fullName} - {addr.address}, {addr.city}
-                                        </option>
-                                    ))}
-                                    <option value="new">+ Enter a new address</option>
-                                </select>
-                            </div>
-                        )}
-
-                        <form onSubmit={handleSubmitOrder} id="checkout-form">
-                            <div>
-                                <label htmlFor="fullName">Full Name *</label>
-                                <input
-                                    id="fullName"
-                                    type="text"
-                                    name="fullName"
-                                    required
-                                    value={shippingInfo.fullName}
-                                    onChange={handleInputChange}
-                                />
-                            </div>
-
-                            <div>
-                                <label htmlFor="email">Email Address</label>
-                                <input
-                                    id="email"
-                                    type="email"
-                                    name="email"
-                                    value={auth?.email || ''}
-                                    disabled
-                                />
-                            </div>
-
-                            <div>
-                                <label htmlFor="address">Street Address *</label>
-                                <input
-                                    id="address"
-                                    type="text"
-                                    name="address"
-                                    required
-                                    value={shippingInfo.address}
-                                    onChange={handleInputChange}
-                                />
-                            </div>
-
-                            <div>
-                                <div>
-                                    <label htmlFor="city">City *</label>
-                                    <input
-                                        id="city"
-                                        type="text"
-                                        name="city"
-                                        required
-                                        value={shippingInfo.city}
-                                        onChange={handleInputChange}
-                                    />
-                                </div>
-                                <div>
-                                    <label htmlFor="postalCode">Postal Code *</label>
-                                    <input
-                                        id="postalCode"
-                                        type="text"
-                                        name="postalCode"
-                                        required
-                                        value={shippingInfo.postalCode}
-                                        onChange={handleInputChange}
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label htmlFor="country">Country *</label>
-                                <input
-                                    id="country"
-                                    type="text"
-                                    name="country"
-                                    required
-                                    value={shippingInfo.country}
-                                    onChange={handleInputChange}
-                                />
-                            </div>
-
-                            {/* Action when selecting an existing saved address */}
-                            {selectedAddressId && selectedAddressId !== 'new' && (
-                                <button
-                                    type="button"
-                                    onClick={handleUpdateAddress}
-                                    disabled={isUpdatingAddress}
-                                >
-                                    {isUpdatingAddress ? 'Updating Address...' : 'Save Changes to This Address'}
-                                </button>
-                            )}
-
-                            {/* Save checkbox when typing a new address */}
-                            {(savedAddresses.length === 0 || selectedAddressId === 'new') && (
-                                <div>
-                                    <input
-                                        type="checkbox"
-                                        id="saveAddress"
-                                        checked={saveAddressForFuture}
-                                        onChange={(e) => setSaveAddressForFuture(e.target.checked)}
-                                    />
-                                    <label htmlFor="saveAddress">
-                                        Save this address to my profile for future orders
-                                    </label>
-                                </div>
-                            )}
-                        </form>
-                    </div>
-
-                    {/* Right Column: Order Summary */}
-                    <div>
-                        <h3>Order Summary</h3>
-
+                    <form id="checkout-form" onSubmit={(e) => e.preventDefault()}>
                         <div>
-                            {cart.map((item) => {
-                                const itemId = item._id || item.id;
-                                return (
-                                    <div key={itemId}>
-                                        <div>
-                                            <p>{item.title}</p>
-                                            <span>Qty: {item.quantity}</span>
-                                        </div>
-                                        <span>
-                                            ${(item.price * item.quantity).toFixed(2)}
-                                        </span>
-                                    </div>
-                                );
-                            })}
-                        </div>
-
-                        <div>
-                            <div>
-                                <span>Subtotal</span>
-                                <span>${totalPrice.toFixed(2)}</span>
-                            </div>
-                            <div>
-                                <span>Shipping</span>
-                                <span>{shippingFee === 0 ? 'FREE' : `$${shippingFee.toFixed(2)}`}</span>
-                            </div>
-                            {shippingFee === 0 && (
-                                <p>Qualified for Free Shipping!</p>
-                            )}
-                            <div>
-                                <span>Total</span>
-                                <span>${finalTotal.toFixed(2)}</span>
-                            </div>
-                        </div>
-
-                        {/* Payment & Submission */}
-                        <div>
-                            {/* <button
-                                type="submit"
-                                form="checkout-form"
-                                disabled={isSubmitting}
-                            >
-                                {isSubmitting ? 'Processing Order...' : 'Place Order'}
-                            </button> */}
-
-                            <PayPalCheckoutSection
-                                total={finalTotal}
-                                shippingInfo={shippingInfo}
-                                cart={cart}
-                                selectedAddressId={selectedAddressId}
-                                saveAddressForFuture={saveAddressForFuture}
-                                setOrderComplete={setOrderComplete}
-                                setStatusMessage={setStatusMessage}
+                            <label htmlFor="fullName">Full Name *</label>
+                            <input
+                                id="fullName"
+                                type="text"
+                                required
+                                {...fullNameAttribs}
                             />
                         </div>
+
+                        <div>
+                            <label htmlFor="email">Email Address</label>
+                            <input
+                                id="email"
+                                type="email"
+                                value={auth?.email || ''}
+                                disabled
+                            />
+                        </div>
+
+                        <div>
+                            <label htmlFor="address">Street Address *</label>
+                            <input
+                                id="address"
+                                type="text"
+                                required
+                                {...addressAttribs}
+                            />
+                        </div>
+
+                        <div>
+                            <div style={{ flex: 1 }}>
+                                <label htmlFor="city">City *</label>
+                                <input
+                                    id="city"
+                                    type="text"
+                                    required
+                                    {...cityAttribs}
+                                />
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <label htmlFor="postalCode">Postal Code *</label>
+                                <input
+                                    id="postalCode"
+                                    type="text"
+                                    required
+                                    {...postalCodeAttribs}
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label htmlFor="country">Country *</label>
+                            <input
+                                id="country"
+                                type="text"
+                                required
+                                {...countryAttribs}
+                            />
+                        </div>
+
+                        <div>
+                            <label htmlFor="saveAddress">
+                                <input
+                                    type="checkbox"
+                                    id="saveAddress"
+                                    checked={saveTheNewAddress}
+                                    onChange={(e) => setSaveTheNewAddress(e.target.checked)}
+                                />
+                                {hasExistingAddress
+                                    ? 'Save changes as my new default address'
+                                    : 'Save this address to my profile'}
+                            </label>
+                        </div>
+                    </form>
+                </div>
+
+                {/* Right Column: Order Summary & PayPal */}
+                <div>
+                    <h3>Order Summary</h3>
+
+                    <div>
+                        {cart.map((item) => {
+                            const itemId = item._id || item.id;
+                            return (
+                                <div key={itemId}>
+                                    <div>
+                                        <p style={{ margin: 0 }}>{item.title}</p>
+                                        <small>Qty: {item.quantity}</small>
+                                    </div>
+                                    <span>
+                                        ${(item.price * item.quantity).toFixed(2)}
+                                    </span>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    <hr />
+
+                    <div>
+                        <div>
+                            <span>Subtotal</span>
+                            <span>${totalPrice.toFixed(2)}</span>
+                        </div>
+                        <div>
+                            <span>Shipping</span>
+                            <span>FREE</span>
+                        </div>
+                        <div>
+                            <span>Total</span>
+                            <span>${totalPrice.toFixed(2)}</span>
+                        </div>
+                    </div>
+
+                    <div style={{ marginTop: '1.5rem' }}>
+                        <PayPalCheckoutSection
+                            shippingInfo={shippingInfo}
+                            saveTheNewAddress={saveTheNewAddress || !hasExistingAddress}
+                            setOrderComplete={setOrderComplete}
+                            setStatusMessage={setStatusMessage}
+                        />
                     </div>
                 </div>
-            </section>
- 
+            </div>
+        </section>
     );
 }
 

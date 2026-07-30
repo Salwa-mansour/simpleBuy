@@ -14,6 +14,7 @@ export const registerOrderWithPayment = catchAsync(async (req, res, next) => {
   
   const addressData = req.body.shippingAddress;
   const cartItems = req.body.items;
+  const saveTheNewAddress = req.body.saveTheNewAddress;
 
   // 1. Basic payload validations
   if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
@@ -32,8 +33,10 @@ export const registerOrderWithPayment = catchAsync(async (req, res, next) => {
   }
 
   // 3. Save / Update User Address
+  if(saveTheNewAddress){
   await updateUserAddressService(userId, addressData);
-
+  }
+  
   // 4. Create pending DB order with verified items
   const order = await createBendingOrderService(userId, addressData, verifiedItems, totalPrice);
 

@@ -1,5 +1,5 @@
 import express from 'express';
-import { getUserAddresses,  } from '../controllers/userController.js';
+import { getUserAddress  } from '../controllers/userController.js';
 import auth from "../middleware/authMiddleware.js"; // Adjust pathway to your JWT middleware
 
 const router = express.Router();
@@ -8,7 +8,7 @@ const router = express.Router();
 router.use(auth);
 
 // GET /api/users/addresses
-router.get('/addresses', getUserAddresses);
+router.get('/address', getUserAddress);
 
 // PUT /api/users/addresses/:addressId
 // router.put('/addresses/:addressId', updateAddress);

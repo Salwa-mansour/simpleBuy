@@ -1,5 +1,5 @@
 import express from 'express';
-import { createOrder,approveOrderPayment ,updateOrderToPaid ,registerOrderWithPayment} from '../controllers/orderController.js';
+import { approveOrderPayment ,registerOrderWithPayment} from '../controllers/orderController.js';
 import auth from "../middleware/authMiddleware.js"; // Adjust pathway to your JWT middleware
 
 const router = express.Router();

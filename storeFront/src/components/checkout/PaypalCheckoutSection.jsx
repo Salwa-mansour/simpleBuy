@@ -3,14 +3,14 @@ import { useRef } from 'react';
 import useAxiosPrivate from '../../hooks/useAxiosPrivate';
 import { useCart } from '../../context/CartProvider';
 
-function PayPalCheckoutSection({ shippingInfo, setOrderComplete, setStatusMessage }) {
+function PayPalCheckoutSection({ shippingInfo, setOrderComplete, setStatusMessage, saveTheNewAddress }) {
   const axiosPrivate = useAxiosPrivate();
   const { cart, clearCart } = useCart();
 
   // 1. Get current SDK script status
   const [{ isPending, isRejected }] = usePayPalScriptReducer();
 
-  // 2. Use a Ref  to immediately hold the MongoDB Order ID synchronously
+  // 2. Use a Ref to hold the DB Order ID synchronously across lifecycle events
   const dbOrderIdRef = useRef(null);
 
   const handleCreateOrder = async () => {
@@ -26,9 +26,11 @@ function PayPalCheckoutSection({ shippingInfo, setOrderComplete, setStatusMessag
     }
 
     try {
+      // Pass saveTheNewAddress flag along with items and shipping address
       const response = await axiosPrivate.post('/order/register', {
         items: cart,
         shippingAddress: shippingInfo,
+        saveTheNewAddress: Boolean(saveTheNewAddress), // boolean flag for backend handling
       });
 
       // Save database order ID into ref immediately
@@ -50,14 +52,16 @@ function PayPalCheckoutSection({ shippingInfo, setOrderComplete, setStatusMessag
 
   const handleApprove = async (data) => {
     try {
-      // Use the stored ref value
       const dbOrderId = dbOrderIdRef.current;
-console.log(`dborderid ${dbOrderId}`)
+      console.log(`dborderid ${dbOrderId}`);
+
       const response = await axiosPrivate.post('/order/approve', {
         paymentId: data.orderID, // PayPal's order ID
         orderID: dbOrderId,     // Your DB order ID from ref
       });
-      console.log(response.data)
+
+      console.log(response.data);
+
       if (response.data.success) {
         clearCart();
         if (setOrderComplete) setOrderComplete(true);

@@ -18,7 +18,7 @@ export const updateUserAddressService = async ( userId, newAddressData ) => {
     { $set: { address: { ...user.address, ...newAddressData } } },
     { new: true, runValidators: true }
   );
-
+  console.log(updatedUser?.address)
   return updatedUser?.address;
 };
 // export const updateAddressService = async ({ userId, addressId, updatedAddressData }) => {
@@ -59,7 +59,7 @@ export const updateUserAddressService = async ( userId, newAddressData ) => {
 
 //   return user.addresses;
 // };
-export const getUserAddressesService = async (userId) => {
+export const getUserAddressService = async (userId) => {
   const user = await User.findById(userId).select('address');
 
   if (!user) {
@@ -68,5 +68,5 @@ export const getUserAddressesService = async (userId) => {
     throw error;
   }
 
-  return user.addresses || {};
+  return user.address || {};
 };
