@@ -6,6 +6,7 @@ import { useCart } from "../context/CartProvider";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faShoppingCart } from "@fortawesome/free-solid-svg-icons";
 import { useAuth } from "../hooks/useAuth";
+import '../css/cart.css';
 
 function Nav() {
     const { totalItems, showCart, setShowCart } = useCart();
@@ -32,37 +33,13 @@ function Nav() {
                     <button
                         type="button"
                         onClick={toggleCart}
-                        style={{
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            position: 'relative',
-                            padding: '0.5rem',
-                            fontSize: '1.2rem'
-                        }}
+            
+                        className="cart-toggler"
                         aria-label="Toggle Shopping Cart"
                     >
                         <FontAwesomeIcon icon={faShoppingCart} />
-                        
                         {totalItems > 0 && (
-                            <span
-                                style={{
-                                    position: 'absolute',
-                                    top: '0px',
-                                    right: '0px',
-                                    backgroundColor: '#e53e3e',
-                                    color: '#ffffff',
-                                    fontSize: '0.7rem',
-                                    fontWeight: 'bold',
-                                    minWidth: '18px',
-                                    height: '18px',
-                                    borderRadius: '50%',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    padding: '2px'
-                                }}
-                            >
+                            <span className="cart-count" >
                                 {totalItems > 99 ? '99+' : totalItems}
                             </span>
                         )}

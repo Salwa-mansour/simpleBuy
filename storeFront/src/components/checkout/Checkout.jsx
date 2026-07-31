@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { Country, State, City } from 'country-state-city';
+
 import { useCart } from '../../context/CartProvider';
 import { useAuth } from '../../hooks/useAuth';
 import useAxiosPrivate from '../../hooks/useAxiosPrivate';
 import useInput from '../../hooks/useInput';
 
 import PayPalCheckoutSection from './PaypalCheckoutSection';
+import '../../css/checkout.css'
 
 function Checkout() {
     const { cart, totalPrice } = useCart();
@@ -17,6 +20,7 @@ function Checkout() {
     const [fullName, setFullName, fullNameAttribs] = useInput('checkout_fullName', '');
     const [address, setAddress, addressAttribs] = useInput('checkout_address', '');
     const [city, setCity, cityAttribs] = useInput('checkout_city', '');
+    const [state, setState, stateAttribs] = useInput('checkout_state', ''); // Optional State / Region
     const [postalCode, setPostalCode, postalCodeAttribs] = useInput('checkout_postalCode', '');
     const [country, setCountry, countryAttribs] = useInput('checkout_country', '');
 
@@ -33,51 +37,68 @@ function Checkout() {
         fullName,
         address,
         city,
+        state,
         postalCode,
         country,
     };
 
+    // --- Dynamic Country / State / City helpers ---
+    const countriesList = Country.getAllCountries();
+    
+    const selectedCountryObj = countriesList.find(c => c.name === country || c.isoCode === country);
+    const selectedCountryCode = selectedCountryObj?.isoCode || '';
+
+    const statesList = selectedCountryCode ? State.getStatesOfCountry(selectedCountryCode) : [];
+    
+    const selectedStateObj = statesList.find(s => s.name === state || s.isoCode === state);
+    const selectedStateCode = selectedStateObj?.isoCode || '';
+
+    const citiesList = selectedCountryCode 
+        ? (selectedStateCode ? City.getCitiesOfState(selectedCountryCode, selectedStateCode) : City.getCitiesOfCountry(selectedCountryCode))
+        : [];
+
     // 4. Fetch server address on mount
-// 4. Fetch server address on mount, but prefer LocalStorage if present
-useEffect(() => {
-    let isMounted = true;
-    const controller = new AbortController();
+    useEffect(() => {
+        let isMounted = true;
+        const controller = new AbortController();
 
-    const fetchAddress = async () => {
-        try {
-            const response = await axiosPrivate.get('/user/address', {
-                signal: controller.signal,
-            });
+        const fetchAddress = async () => {
+            try {
+                const response = await axiosPrivate.get('/user/address', {
+                    signal: controller.signal,
+                });
 
-            if (isMounted) {
-                const savedAddress = response.data;
-                
-                if (savedAddress && Object.keys(savedAddress).length > 0) {
-                    setHasExistingAddress(true);
+                if (isMounted) {
+                    const savedAddress = response.data;
+                    
+                    if (savedAddress && Object.keys(savedAddress).length > 0) {
+                        setHasExistingAddress(true);
 
-                    // ONLY fill from server if LocalStorage state is currently empty
-                    if (!fullName) setFullName(savedAddress.fullName || '');
-                    if (!address) setAddress(savedAddress.address || '');
-                    if (!city) setCity(savedAddress.city || '');
-                    if (!postalCode) setPostalCode(savedAddress.postalCode || '');
-                    if (!country) setCountry(savedAddress.country || '');
-                } else {
-                    setSaveTheNewAddress(true);
+                        // Fall back to server address ONLY if localStorage values are currently empty
+                        if (!fullName) setFullName(savedAddress.fullName || '');
+                        if (!address) setAddress(savedAddress.address || '');
+                        if (!country) setCountry(savedAddress.country || '');
+                        if (!state) setState(savedAddress.state || '');
+                        if (!city) setCity(savedAddress.city || '');
+                        if (!postalCode) setPostalCode(savedAddress.postalCode || '');
+                    } else {
+                        setSaveTheNewAddress(true);
+                    }
                 }
+            } catch (err) {
+                if (err.name === 'CanceledError' || err.code === 'ERR_CANCELED') return;
+                console.error('Failed to load saved address:', err);
             }
-        } catch (err) {
-            if (err.name === 'CanceledError' || err.code === 'ERR_CANCELED') return;
-            console.error('Failed to load saved address:', err);
-        }
-    };
+        };
 
-    fetchAddress();
+        fetchAddress();
 
-    return () => {
-        isMounted = false;
-        controller.abort();
-    };
-}, [axiosPrivate]); // Keep dependencies clean
+        return () => {
+            isMounted = false;
+            controller.abort();
+        };
+    }, [axiosPrivate]);
+
     if (orderComplete) {
         return (
             <div>
@@ -104,8 +125,8 @@ useEffect(() => {
     }
 
     return (
-        <section>
-            <h2>Checkout</h2>
+        <section className="checkout-page">
+            <h3 className='title'>Checkout</h3>
 
             {statusMessage && (
                 <div className={`status-${statusMessage.type}`}>
@@ -113,13 +134,13 @@ useEffect(() => {
                 </div>
             )}
 
-            <div>
+          
                 {/* Left Column: Shipping Form */}
                 <div>
-                    <h3>Shipping Details</h3>
+                    <h5 className='title'>Shipping Details</h5>
 
                     <form id="checkout-form" onSubmit={(e) => e.preventDefault()}>
-                        <div>
+                        <div className='input-box'>
                             <label htmlFor="fullName">Full Name *</label>
                             <input
                                 id="fullName"
@@ -129,7 +150,7 @@ useEffect(() => {
                             />
                         </div>
 
-                        <div>
+                        <div className='input-box'>
                             <label htmlFor="email">Email Address</label>
                             <input
                                 id="email"
@@ -139,7 +160,7 @@ useEffect(() => {
                             />
                         </div>
 
-                        <div>
+                        <div className='input-box' >
                             <label htmlFor="address">Street Address *</label>
                             <input
                                 id="address"
@@ -149,17 +170,57 @@ useEffect(() => {
                             />
                         </div>
 
-                        <div>
-                            <div style={{ flex: 1 }}>
-                                <label htmlFor="city">City *</label>
-                                <input
-                                    id="city"
-                                    type="text"
-                                    required
-                                    {...cityAttribs}
-                                />
+                        {/* Country Select */}
+                        <div className='input-box' >
+                            <label htmlFor="country">Country *</label>
+                            <select
+                                id="country"
+                                required
+                                value={country}
+                                onChange={(e) => {
+                                    setCountry(e.target.value);
+                                    setState('');
+                                    setCity('');
+                                }}
+                            >
+                                <option value="">Select Country</option>
+                                {countriesList.map((c) => (
+                                    <option key={c.isoCode} value={c.name}>
+                                        {c.flag} {c.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* State & Postal Code Row */}
+                      
+                            <div className='input-box' >
+                                <label htmlFor="state">State / Region <small>(Optional)</small></label>
+                                <select
+                                    id="state"
+                                    value={state}
+                                    disabled={!country || statesList.length === 0}
+                                    onChange={(e) => {
+                                        setState(e.target.value);
+                                        setCity('');
+                                    }}
+                                >
+                                    <option value="">
+                                        {!country 
+                                            ? 'Select Country First' 
+                                            : statesList.length === 0 
+                                                ? 'No States Available' 
+                                                : 'Select State / Region'}
+                                    </option>
+                                    {statesList.map((s) => (
+                                        <option key={s.isoCode} value={s.name}>
+                                            {s.name}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
-                            <div style={{ flex: 1 }}>
+
+                            <div className='input-box' >
                                 <label htmlFor="postalCode">Postal Code *</label>
                                 <input
                                     id="postalCode"
@@ -168,19 +229,39 @@ useEffect(() => {
                                     {...postalCodeAttribs}
                                 />
                             </div>
-                        </div>
+                       
 
-                        <div>
-                            <label htmlFor="country">Country *</label>
-                            <input
-                                id="country"
-                                type="text"
+                        {/* City Select */}
+                        <div className='input-box' >
+                            <label htmlFor="city">City *</label>
+                            <select
+                                id="city"
                                 required
-                                {...countryAttribs}
-                            />
+                                value={city}
+                                disabled={!country}
+                                onChange={(e) => {
+                                    // Directly invoke custom setter to update state + localStorage synchronously
+                                    setCity(e.target.value);
+                                }}
+                            >
+                                <option value="">
+                                    {!country ? 'Select Country First' : 'Select City'}
+                                </option>
+
+                                {/* Fallback option if local city isn't in citiesList yet */}
+                                {city && !citiesList.some((c) => c.name === city) && (
+                                    <option value={city}>{city}</option>
+                                )}
+
+                                {citiesList.map((c) => (
+                                    <option key={`${c.name}-${c.latitude}`} value={c.name}>
+                                        {c.name}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
 
-                        <div>
+                        <div className='input-box check-box'>
                             <label htmlFor="saveAddress">
                                 <input
                                     type="checkbox"
@@ -198,28 +279,28 @@ useEffect(() => {
 
                 {/* Right Column: Order Summary & PayPal */}
                 <div>
-                    <h3>Order Summary</h3>
+                    <h3 className='title'>Order Summary</h3>
 
-                    <div>
+                    <ul className='order-items'>
                         {cart.map((item) => {
                             const itemId = item._id || item.id;
                             return (
-                                <div key={itemId}>
-                                    <div>
+                                <li key={itemId} className='order-item'>
+                                    <div className='pricing'>
                                         <p style={{ margin: 0 }}>{item.title}</p>
                                         <small>Qty: {item.quantity}</small>
                                     </div>
                                     <span>
                                         ${(item.price * item.quantity).toFixed(2)}
                                     </span>
-                                </div>
+                                </li>
                             );
                         })}
-                    </div>
+                    </ul>
 
                     <hr />
 
-                    <div>
+                    <div className='checkout-sammury'>
                         <div>
                             <span>Subtotal</span>
                             <span>${totalPrice.toFixed(2)}</span>
@@ -234,7 +315,7 @@ useEffect(() => {
                         </div>
                     </div>
 
-                    <div style={{ marginTop: '1.5rem' }}>
+                    <div >
                         <PayPalCheckoutSection
                             shippingInfo={shippingInfo}
                             saveTheNewAddress={saveTheNewAddress || !hasExistingAddress}
@@ -243,7 +324,7 @@ useEffect(() => {
                         />
                     </div>
                 </div>
-            </div>
+            
         </section>
     );
 }

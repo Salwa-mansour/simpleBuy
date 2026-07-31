@@ -1,0 +1,117 @@
+
+.order-items,
+.checkout-sammury {
+    padding-block: .5rem;
+}
+.order-item{
+    display: flex;
+    justify-content: space-around;
+}
+.order-item .pricing{
+    display: flex;
+    gap:.5rem
+}
+.checkout-sammury div{
+    display: flex;
+    justify-content: space-between;
+}
+/* form */
+input[type="text"],
+input[type="email"],
+select {
+    /* 1. Remove native browser styling (crucial for select) */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+
+    /* 2. Your base styles */
+    outline: none;
+    border: 1px solid rgba(222, 200, 200, 0.51);
+    background-color: rgba(255, 255, 255, 0.149);
+    border-radius: 20px;
+    width: 100%;
+    height: 3rem;
+    /* 3. Consistency fixes */
+    box-sizing: border-box;
+    font-family: inherit;
+    font-size: 1rem;
+    padding: 10px 16px; /* Adjust padding to fit your design */
+    height: 42px;        /* Explicit height ensures exact matching */
+    color: inherit;
+}
+
+/* 4. Custom dropdown arrow for <select> */
+select {
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23ffffff%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E');
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 10px auto;
+    padding-right: 36px; /* Leave space so text doesn't overlap the custom arrow */
+    cursor: pointer;
+}
+
+/* 5. Fix dark background readability for dropdown options */
+select option {
+    background-color: #ffffff; /* Re-apply solid background for expanded list */
+    color: #333333;
+}
+.check-box{
+    font-size: .8rem;
+}
+.check-box label{
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: .25rem;
+}
+.input-box{
+   
+    margin-bottom: .75rem;
+}
+
+/* ==========================================================================
+   Focus State (Keyboard navigation & Active selection)
+   ========================================================================== */
+input[type="text"]:focus,
+input[type="email"]:focus,
+select:focus {
+    /* Glowing outline matching your border tint */
+    border-color: rgba(222, 200, 200, 0.9);
+    box-shadow: 0 0 0 3px rgba(222, 200, 200, 0.2);
+    
+    /* Slightly lift background brightness to show activity */
+    background-color: rgba(255, 255, 255, 0.22);
+}
+
+/* Checkbox focus outline for accessibility */
+.check-box input:focus-visible {
+    outline: 2px solid rgba(222, 200, 200, 0.8);
+    outline-offset: 2px;
+}
+
+/* ==========================================================================
+   Disabled State (Inactive form fields)
+   ========================================================================== */
+input[type="text"]:disabled,
+input[type="email"]:disabled,
+select:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: rgba(0, 0, 0, 0.15);
+    border-color: rgba(222, 200, 200, 0.2);
+   
+    /* Disables mouse hover/click events entirely */
+    pointer-events: none;
+}
+
+/* Gray out disabled options inside the select dropdown */
+select option:disabled {
+    color: #a1a1a1;
+    background-color: #f5f5f5;
+}
+
+/* Gray out text label if a checkbox inside it is disabled */
+.check-box label:has(input:disabled) {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

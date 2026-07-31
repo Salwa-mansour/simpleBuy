@@ -1,0 +1,121 @@
+.cart-count{
+  
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    background-color: #e53e3e;
+    color: #ffffff;
+    font-size: 0.7rem;
+    font-weight: bold;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;                    
+}
+.cart-toggler{
+    background: none;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    padding: 0.5rem;
+    font-size: 1.2rem;                  
+}
+.cart-popup{
+        position: absolute;
+        top: 100%;
+        right: -300px;
+        /* width: 320px; */
+         /* maxHeight: 450px; */
+        overflow-y: auto;
+        background-color: #ffffff;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+       
+        z-index: 1000;
+}
+.cart-container{
+    padding: .5rem;
+    color: black;
+}
+
+.close-cart,
+.cart-item-delete{
+background: salmon;
+border: none;
+font-size: 1.25rem;
+cursor: pointer;
+color: white;
+border-radius: 50%;
+width: 25px;
+height: 25px;
+padding: 0.25rem;
+line-height: .5;
+text-align: center;
+position: absolute;
+top: .2rem;
+inset-inline-start: .2rem;
+margin: 0;
+}
+.cart-header{
+   display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem ;
+    padding-top: 1rem;
+}
+.cart-header *{
+    font-size: 1rem;
+}
+.cart-item{
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background-color: #fff;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    position: relative;
+}
+.quantity-contolles{
+    display: flex;
+    align-items: center;
+}
+.quantity-contolles button{
+    padding: 0.25rem 0.6rem;
+    border: none;
+    background: #f7fafc;
+    cursor: pointer ;
+    margin: 0;
+}
+.quantity-contolles .quantity{
+    padding: 0.25rem 0.75rem;
+     font-size: 0.9rem;
+     font-weight: 600;
+    color:black;
+}
+.summary-box{
+    background-color: #fff;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    height: fit-content;             
+}
+.cart-item-delete{
+    inset-inline-start: unset;
+   inset-inline-end: .25rem;
+
+}
+.cart-item figure{
+    width: 50px;
+    height: 50px;
+}
+figure img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}

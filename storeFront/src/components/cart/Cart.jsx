@@ -1,7 +1,8 @@
 import { Link,useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartProvider';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrash, faArrowLeft, faShoppingBag } from '@fortawesome/free-solid-svg-icons';
+import { faTimes, faArrowLeft, faShoppingBag } from '@fortawesome/free-solid-svg-icons';
+import '../../css/cart.css';
 
 const Cart = () => {
     const { cart, removeFromCart, updateQuantity, clearCart, totalPrice, totalItems,setShowCart } = useCart();
@@ -9,7 +10,7 @@ const Cart = () => {
 
     if (cart.length === 0) {
         return (
-            <div style={{ textAlign: 'center', padding: '4rem 1rem' }}>
+            <section className="cart-container empty" >
                 <FontAwesomeIcon icon={faShoppingBag} style={{ fontSize: '3rem', color: '#a0aec0', marginBottom: '1rem' }} />
                 <h2>Your cart is empty</h2>
                 <p style={{ color: '#718096', marginBottom: '1.5rem' }}>Looks like you haven't added anything to your cart yet.</p>
@@ -26,13 +27,13 @@ const Cart = () => {
                 >
                     Start Shopping
                 </Link>
-            </div>
+            </section>
         );
     }
 
     return (
-        <section style={{ maxWidth: '1000px', margin: '0 auto', padding: '2rem 1rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <section  className="cart-container" >
+            <div className="cart-header" >
                 <h2>Your Shopping Cart ({totalItems} items)</h2>
                 <button
                     onClick={clearCart}
@@ -42,51 +43,36 @@ const Cart = () => {
                 </button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2rem' }}>
+            <div className="cart-contents" >
                 {/* Cart Items List */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <ul className="cart-items" >
                     {cart.map((item) => {
                         const itemId = item._id || item.id;
                         return (
-                            <div
+                            <li
                                 key={itemId}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '1rem',
-                                    backgroundColor: '#fff',
-                                    padding: '1rem',
-                                    borderRadius: '8px',
-                                    border: '1px solid #e2e8f0'
-                                }}
+                                className="cart-item"
+                               
                             >
-                                <div style={{ width: '80px', height: '80px', backgroundColor: '#f7fafc', borderRadius: '4px', overflow: 'hidden' }}>
-                                    {item.imageUrl ? (
-                                        <img src={item.imageUrl} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                    ) : (
-                                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', color: '#a0aec0' }}>
-                                            No image
-                                        </div>
-                                    )}
-                                </div>
+                                <figure >
+                                        <img src={item?.imageUrl} alt={item.title} width="150" />
+                                </figure>
 
-                                <div style={{ flex: 1 }}>
+                                <div >
                                     <h4 style={{ margin: '0 0 0.25rem 0' }}>{item.title}</h4>
                                     <span style={{ color: '#2b6cb0', fontWeight: 'bold' }}>${Number(item.price).toFixed(2)}</span>
                                 </div>
 
                                 {/* Quantity selector */}
-                                <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #cbd5e0', borderRadius: '4px' }}>
+                                <div className="quantity-contolles" >
                                     <button
                                         onClick={() => updateQuantity(itemId, item.quantity - 1)}
-                                        style={{ padding: '0.25rem 0.6rem', border: 'none', background: '#f7fafc', cursor: 'pointer' }}
                                     >
                                         -
                                     </button>
-                                    <span style={{ padding: '0.25rem 0.75rem', fontSize: '0.9rem', fontWeight: '600',color:'black' }}>{item.quantity}</span>
+                                    <span className="quantity">{item.quantity}</span>
                                     <button
                                         onClick={() => updateQuantity(itemId, item.quantity + 1)}
-                                        style={{ padding: '0.25rem 0.6rem', border: 'none', background: '#f7fafc', cursor: 'pointer' }}
                                     >
                                         +
                                     </button>
@@ -96,31 +82,20 @@ const Cart = () => {
                                     ${(item.price * item.quantity).toFixed(2)}
                                 </div>
 
-                                <button
-                                    onClick={() => removeFromCart(itemId)}
-                                    style={{ background: 'none', border: 'none', color: '#a0aec0', cursor: 'pointer', padding: '0.5rem' }}
-                                >
-                                    <FontAwesomeIcon icon={faTrash} />
+                                <button onClick={() => removeFromCart(itemId)}className="cart-item-delete">
+                                     &times;
                                 </button>
-                            </div>
+                            </li>
                         );
                     })}
 
-                    <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#3182ce', textDecoration: 'none', marginTop: '1rem' }}>
+                    <Link to="/" >
                         <FontAwesomeIcon icon={faArrowLeft} /> Continue Shopping
                     </Link>
-                </div>
+                </ul>
 
                 {/* Summary Box */}
-                <div
-                    style={{
-                        backgroundColor: '#fff',
-                        padding: '1.5rem',
-                        borderRadius: '8px',
-                        border: '1px solid #e2e8f0',
-                        height: 'fit-content'
-                    }}
-                >
+                <div className="summary-box" >
                     <h3 style={{ marginTop: 0, marginBottom: '1rem', borderBottom: '1px solid #edf2f7', paddingBottom: '0.5rem' }}>Order Summary</h3>
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
