@@ -10,7 +10,6 @@ function ProductDetails() {
     const { id } = useParams();
     const [product, loading, fetchError] = useFetchOneItem("product", id);
     const [quantity, setQuantity] = useState(1);
-    // Inside ProductDetails component:
     const { addToCart } = useCart();
 
     const handleAddToCart = () => {
@@ -53,6 +52,16 @@ function ProductDetails() {
 
     const isOutOfStock = product.stock <= 0;
 
+    // Helper to format dimensions into a single readable string (e.g. "6 x 4 x 2 in")
+    const formattedDimensions = product.dimensions
+        ? `${product.dimensions.length ?? ''} × ${product.dimensions.width ?? ''} × ${product.dimensions.height ?? ''} ${product.dimensions.unit || ''}`.trim()
+        : null;
+
+    // Helper to format weight (e.g. "1.5 lb")
+    const formattedWeight = product.weight?.value !== undefined 
+        ? `${product.weight.value} ${product.weight.unit || ''}`.trim()
+        : null;
+
     return (
         <section style={{ maxWidth: '1000px', margin: '0 auto', padding: '2rem' }}>
             {/* Back Button */}
@@ -92,7 +101,7 @@ function ProductDetails() {
                         overflow: 'hidden',
                         display: 'flex',
                         alignItems: 'center',
-                        justify: 'center'
+                        justifyContent: 'center'
                     }}
                 >
                     {product.imageUrl ? (
@@ -107,7 +116,7 @@ function ProductDetails() {
                 </div>
 
                 {/* Right Column: Product Information */}
-                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'spaceBetween' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                     <div>
                         {/* Category Tag */}
                         <span 
@@ -153,6 +162,27 @@ function ProductDetails() {
                                 {product.description || "No description provided for this item."}
                             </p>
                         </div>
+
+                        {/* Shipping Specifications Section */}
+                        {(formattedWeight || formattedDimensions) && (
+                            <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '1rem', marginBottom: '1.5rem' }}>
+                                <h4 style={{ margin: '0 0 0.5rem 0', color: '#4a5568' }}>Shipping Specifications</h4>
+                                <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#718096', lineHeight: '1.8' }}>
+                                    {formattedWeight && (
+                                        <li>
+                                            <strong style={{ color: '#4a5568' }}>Weight: </strong> 
+                                            {formattedWeight}
+                                        </li>
+                                    )}
+                                    {formattedDimensions && (
+                                        <li>
+                                            <strong style={{ color: '#4a5568' }}>Dimensions (L × W × H): </strong> 
+                                            {formattedDimensions}
+                                        </li>
+                                    )}
+                                </ul>
+                            </div>
+                        )}
                     </div>
 
                     {/* Quantity & Cart Action */}

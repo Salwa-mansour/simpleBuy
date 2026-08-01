@@ -1,9 +1,9 @@
 import Order from '../models/Order.js';
 import Product from '../models/Product.js';
-import User from '../models/User.js';
+// import User from '../models/User.js';
 
 
-export const createBendingOrderService =async(userId,shippingAddress,orderItems,totalAmount)=>{
+export const createBendingOrderService =async(userId,shippingAddress,orderItems,totalAmount,subtotal)=>{
   // 4. Create and persist the new Order
 
   const newOrder = await Order.create({
@@ -17,15 +17,14 @@ export const createBendingOrderService =async(userId,shippingAddress,orderItems,
       country: shippingAddress.country,
     },
     totalAmount,
-   
+   subtotal,
     status: 'pending',
   });
 
   return newOrder;
 }
 
-
-export const vierifyAndUpdateOrder = async ({ userId, orderId, paymentData }) => {
+export const verifyAndUpdateOrder = async (userId, orderId, paymentData, shippingLabelData) => {
   // 1. Find order by ID
   const order = await Order.findById(orderId);
 
@@ -35,7 +34,7 @@ export const vierifyAndUpdateOrder = async ({ userId, orderId, paymentData }) =>
     throw error;
   }
 
-  // 2. Authorization check: ensure order belongs to the authenticated user
+  // 2. Authorization check
   if (order.user.toString() !== userId.toString()) {
     const error = new Error('Not authorized to update this order.');
     error.statusCode = 403;
@@ -44,23 +43,37 @@ export const vierifyAndUpdateOrder = async ({ userId, orderId, paymentData }) =>
 
   // 3. Prevent duplicate updates if order is already processed
   if (order.status === 'paid') {
-    return order; // Already completed, return early safely
+    return order;
   }
 
   // 4. Extract PayPal details
-  const captureStatus = paymentData.status; // e.g. 'COMPLETED'
+  const captureStatus = paymentData.status; // 'COMPLETED'
   const paymentDetails = paymentData.purchase_units?.[0]?.payments?.captures?.[0];
-  const detailedStatus = paymentDetails?.status || captureStatus; // fallback to top status
+  const detailedStatus = paymentDetails?.status || captureStatus;
 
   // 5. Update payment details
+  if (!order.paymentInfo) order.paymentInfo = {};
   order.paymentInfo.id = paymentData.id || paymentDetails?.id;
-  order.paymentInfo.status = detailedStatus; // 'COMPLETED', 'PENDING', 'DECLINED', etc.
+  order.paymentInfo.status = detailedStatus;
 
-  // 6. Handle status transition
+  // 6. Attach Shipping Label Data if available
+  if (shippingLabelData) {
+    order.shippingLabel = {
+      transactionId: shippingLabelData.transactionId,
+      trackingNumber: shippingLabelData.trackingNumber,
+      trackingUrl: shippingLabelData.trackingUrl,
+      labelUrl: shippingLabelData.labelUrl,
+      qrCodeUrl: shippingLabelData.qrCodeUrl || null,
+      provider: shippingLabelData.provider ,
+      purchasedAt: shippingLabelData.purchasedAt || new Date()
+    };
+  }
+
+  // 7. Handle status transition
   if (captureStatus === 'COMPLETED' || detailedStatus === 'COMPLETED') {
-    order.status = 'paid'; // Set top-level order status to paid
+    order.status = 'paid';
 
-    // Option A: Deduct stock from Product model upon successful payment
+    // Deduct inventory
     for (const item of order.items) {
       await Product.findByIdAndUpdate(item.product, {
         $inc: { stock: -item.quantity }
@@ -72,126 +85,126 @@ export const vierifyAndUpdateOrder = async ({ userId, orderId, paymentData }) =>
     order.status = 'pending';
   }
 
-  // 7. Save updated order document
+  // 8. Save updated order document
   await order.save();
 
   return order;
 };
-export const createOrderService = async ({ userId, items, shippingAddress, paymentProvider, saveAddress }) => {
-  // 1. Fetch products from DB to verify existence and get real server-side prices
-  const productIds = items.map((item) => item.product);
-  const dbProducts = await Product.find({ _id: { $in: productIds } });
+// export const createOrderService = async ({ userId, items, shippingAddress, paymentProvider, saveAddress }) => {
+//   // 1. Fetch products from DB to verify existence and get real server-side prices
+//   const productIds = items.map((item) => item.product);
+//   const dbProducts = await Product.find({ _id: { $in: productIds } });
 
-  if (dbProducts.length !== items.length) {
-    const error = new Error('One or more items in your cart are invalid or missing.');
-    error.statusCode = 400;
-    throw error;
-  }
+//   if (dbProducts.length !== items.length) {
+//     const error = new Error('One or more items in your cart are invalid or missing.');
+//     error.statusCode = 400;
+//     throw error;
+//   }
 
-  // 2. Build verified order items & calculate total price
-  let subtotal = 0;
-  const verifiedOrderItems = items.map((item) => {
-    const dbProduct = dbProducts.find((p) => p._id.toString() === item.product);
-    const price = dbProduct.price;
+//   // 2. Build verified order items & calculate total price
+//   let subtotal = 0;
+//   const verifiedOrderItems = items.map((item) => {
+//     const dbProduct = dbProducts.find((p) => p._id.toString() === item.product);
+//     const price = dbProduct.price;
 
-    subtotal += price * item.quantity;
+//     subtotal += price * item.quantity;
 
-    return {
-      product: dbProduct._id,
-      quantity: item.quantity,
-      priceAtPurchase: price,
-    };
-  });
+//     return {
+//       product: dbProduct._id,
+//       quantity: item.quantity,
+//       priceAtPurchase: price,
+//     };
+//   });
 
-  // Calculate shipping (e.g., free shipping over $50)
-  const shippingFee = subtotal > 50 ? 0 : 5.99;
-  const totalAmount = parseFloat((subtotal + shippingFee).toFixed(2));
+//   // Calculate shipping (e.g., free shipping over $50)
+//   const shippingFee = subtotal > 50 ? 0 : 5.99;
+//   const totalAmount = parseFloat((subtotal + shippingFee).toFixed(2));
 
-  // 3. Save address to User profile if requested
-  if (saveAddress) {
-    await saveAddressToUserProfile(userId, shippingAddress);
-  }
+//   // 3. Save address to User profile if requested
+//   if (saveAddress) {
+//     await saveAddressToUserProfile(userId, shippingAddress);
+//   }
 
-  // 4. Create and persist the new Order
-  const newOrder = await Order.create({
-    user: userId,
-    items: verifiedOrderItems,
-    shippingAddress: {
-      fullName: shippingAddress.fullName,
-      address: shippingAddress.address,
-      city: shippingAddress.city,
-      postalCode: shippingAddress.postalCode,
-      country: shippingAddress.country,
-    },
-    totalAmount,
-    paymentProvider: paymentProvider || 'paypal',
-    status: 'pending',
-  });
+//   // 4. Create and persist the new Order
+//   const newOrder = await Order.create({
+//     user: userId,
+//     items: verifiedOrderItems,
+//     shippingAddress: {
+//       fullName: shippingAddress.fullName,
+//       address: shippingAddress.address,
+//       city: shippingAddress.city,
+//       postalCode: shippingAddress.postalCode,
+//       country: shippingAddress.country,
+//     },
+//     totalAmount,
+//     paymentProvider: paymentProvider || 'paypal',
+//     status: 'pending',
+//   });
 
-  return newOrder;
-};
+//   return newOrder;
+// };
 
 /**
  * Helper function to push a new address to a user's address array if not already saved.
  */
-const saveAddressToUserProfile = async (userId, shippingAddress) => {
-  const user = await User.findById(userId);
-  if (!user) return;
+// const saveAddressToUserProfile = async (userId, shippingAddress) => {
+//   const user = await User.findById(userId);
+//   if (!user) return;
 
-  const { fullName, address, city, postalCode, country } = shippingAddress;
+//   const { fullName, address, city, postalCode, country } = shippingAddress;
 
-  const addressExists = user.addresses.some(
-    (addr) =>
-      addr.address.toLowerCase() === address.toLowerCase() &&
-      addr.postalCode.toLowerCase() === postalCode.toLowerCase()
-  );
+//   const addressExists = user.addresses.some(
+//     (addr) =>
+//       addr.address.toLowerCase() === address.toLowerCase() &&
+//       addr.postalCode.toLowerCase() === postalCode.toLowerCase()
+//   );
 
-  if (!addressExists) {
-    user.addresses.push({
-      fullName,
-      address,
-      city,
-      postalCode,
-      country,
-      isDefault: user.addresses.length === 0,
-    });
-    await user.save();
-  }
-};
-export const verifyAndPayOrderService = async ({ orderId, userId, paymentId, paymentProvider }) => {
-  // 1. Find order by ID
-  const order = await Order.findById(orderId);
+//   if (!addressExists) {
+//     user.addresses.push({
+//       fullName,
+//       address,
+//       city,
+//       postalCode,
+//       country,
+//       isDefault: user.addresses.length === 0,
+//     });
+//     await user.save();
+//   }
+// };
+// export const verifyAndPayOrderService = async ({ orderId, userId, paymentId, paymentProvider }) => {
+//   // 1. Find order by ID
+//   const order = await Order.findById(orderId);
 
-  if (!order) {
-    const error = new Error('Order not found.');
-    error.statusCode = 404;
-    throw error;
-  }
+//   if (!order) {
+//     const error = new Error('Order not found.');
+//     error.statusCode = 404;
+//     throw error;
+//   }
 
-  // 2. Authorization check: ensure order belongs to the authenticated user
-  if (order.user.toString() !== userId.toString()) {
-    const error = new Error('Not authorized to update this order.');
-    error.statusCode = 403;
-    throw error;
-  }
+//   // 2. Authorization check: ensure order belongs to the authenticated user
+//   if (order.user.toString() !== userId.toString()) {
+//     const error = new Error('Not authorized to update this order.');
+//     error.statusCode = 403;
+//     throw error;
+//   }
 
-  // 3. Prevent re-paying an already processed order
-  if (order.status === 'paid') {
-    const error = new Error('Order is already marked as paid.');
-    error.statusCode = 400;
-    throw error;
-  }
+//   // 3. Prevent re-paying an already processed order
+//   if (order.status === 'paid') {
+//     const error = new Error('Order is already marked as paid.');
+//     error.statusCode = 400;
+//     throw error;
+//   }
 
-  // 4. Update order details
-  order.status = 'paid';
-  order.paymentId = paymentId;
-  if (paymentProvider) {
-    order.paymentProvider = paymentProvider;
-  }
+//   // 4. Update order details
+//   order.status = 'paid';
+//   order.paymentId = paymentId;
+//   if (paymentProvider) {
+//     order.paymentProvider = paymentProvider;
+//   }
 
-  const updatedOrder = await order.save();
-  return updatedOrder;
-};
+//   const updatedOrder = await order.save();
+//   return updatedOrder;
+// };
 
 // export const getUserAddressesService = async (userId) => {
 //   const user = await User.findById(userId).select('addresses');

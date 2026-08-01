@@ -13,7 +13,7 @@ const productSchema = new mongoose.Schema({
     type: Number, 
     required: true, 
     min: 0 
-  }, // e.g. 19.99
+  },
   stock: { 
     type: Number, 
     required: true, 
@@ -27,6 +27,17 @@ const productSchema = new mongoose.Schema({
   },
   imageUrl: { 
     type: String 
+  },
+  // --- NEW SHIPPING DATA ---
+  weight: {
+    value: { type: Number, required: true, default: 1 }, // e.g. 1.5
+    unit: { type: String, enum: ['lb', 'oz', 'kg', 'g'], default: 'g' }
+  },
+  dimensions: {
+    length: { type: Number, required: true, default: 6 }, // e.g. 6 inches
+    width: { type: Number, required: true, default: 4 },  // e.g. 4 inches
+    height: { type: Number, required: true, default: 2 }, // e.g. 2 inches
+    unit: { type: String, enum: ['in', 'cm'], default: 'in' }
   }
 }, { timestamps: true });
 

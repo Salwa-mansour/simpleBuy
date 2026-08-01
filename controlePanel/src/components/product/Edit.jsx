@@ -18,8 +18,16 @@ function EditProduct() {
     const [price, setPrice] = useState("");
     const [stock, setStock] = useState("");
     const [category, setCategory] = useState("");
+
+    // Shipping states
+    const [weightValue, setWeightValue] = useState("1");
+    const [weightUnit, setWeightUnit] = useState("lb");
+    const [length, setLength] = useState("6");
+    const [width, setWidth] = useState("4");
+    const [height, setHeight] = useState("2");
+    const [dimensionUnit, setDimensionUnit] = useState("in");
     
-    // Distinguish existing image URL from a newly selected file
+    // Image states
     const [existingImageUrl, setExistingImageUrl] = useState("");
     const [newImageFile, setNewImageFile] = useState(null);
 
@@ -34,6 +42,18 @@ function EditProduct() {
             setStock(product.stock !== undefined ? product.stock : "");
             setCategory(product.category?._id || product.category || "");
             setExistingImageUrl(product.imageUrl || "");
+
+            // Populate shipping fields if available
+            if (product.weight) {
+                setWeightValue(product.weight.value !== undefined ? product.weight.value : "1");
+                setWeightUnit(product.weight.unit || "lb");
+            }
+            if (product.dimensions) {
+                setLength(product.dimensions.length !== undefined ? product.dimensions.length : "6");
+                setWidth(product.dimensions.width !== undefined ? product.dimensions.width : "4");
+                setHeight(product.dimensions.height !== undefined ? product.dimensions.height : "2");
+                setDimensionUnit(product.dimensions.unit || "in");
+            }
         }
     }, [product]);
 
@@ -44,7 +64,7 @@ function EditProduct() {
 
         let finalImageUrl = existingImageUrl;
 
-        // Step 1: If a new image was selected, upload it to Cloudinary
+        // Step 1: Upload image to Cloudinary if new file selected
         if (newImageFile) {
             const ONE_MEGABYTE = 1 * 1024 * 1024;
             if (newImageFile.size > ONE_MEGABYTE) {
@@ -87,7 +107,17 @@ function EditProduct() {
                 price: Number(price),
                 stock: Number(stock),
                 category,
-                imageUrl: finalImageUrl
+                imageUrl: finalImageUrl,
+                weight: {
+                    value: Number(weightValue),
+                    unit: weightUnit
+                },
+                dimensions: {
+                    length: Number(length),
+                    width: Number(width),
+                    height: Number(height),
+                    unit: dimensionUnit
+                }
             };
 
             await axiosPrivate.put(`/product/${id}`, updatedProductData);
@@ -177,14 +207,14 @@ function EditProduct() {
                     </select>
                 </div>
 
-                {/* Show existing image preview if available */}
                 {existingImageUrl && (
-                    <div style={{ margin: '10px 0' }}>
-                        <p style={{ margin: '0 0 5px 0' }}>Current Image:</p>
+                    <div>
+                        <p>Current Image:</p>
                         <img 
                             src={existingImageUrl} 
                             alt="Current Product" 
-                            style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px' }} 
+                            width="80"
+                            height="80"
                         />
                     </div>
                 )}
@@ -197,6 +227,83 @@ function EditProduct() {
                         accept="image/*"
                         onChange={(e) => setNewImageFile(e.target.files[0])}
                     />
+                </div>
+
+                <hr />
+                <h3>Shipping Specifications</h3>
+
+                <div>
+                    <label htmlFor="weightValue">Weight *:</label>
+                    <input
+                        type="number"
+                        id="weightValue"
+                        step="0.1"
+                        min="0"
+                        value={weightValue}
+                        required
+                        onChange={(e) => setWeightValue(e.target.value)}
+                    />
+                    <select
+                        id="weightUnit"
+                        value={weightUnit}
+                        onChange={(e) => setWeightUnit(e.target.value)}
+                    >
+                        <option value="lb">lb</option>
+                        <option value="oz">oz</option>
+                        <option value="kg">kg</option>
+                        <option value="g">g</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label htmlFor="length">Length *:</label>
+                    <input
+                        type="number"
+                        id="length"
+                        step="0.1"
+                        min="0"
+                        value={length}
+                        required
+                        onChange={(e) => setLength(e.target.value)}
+                    />
+                </div>
+
+                <div>
+                    <label htmlFor="width">Width *:</label>
+                    <input
+                        type="number"
+                        id="width"
+                        step="0.1"
+                        min="0"
+                        value={width}
+                        required
+                        onChange={(e) => setWidth(e.target.value)}
+                    />
+                </div>
+
+                <div>
+                    <label htmlFor="height">Height *:</label>
+                    <input
+                        type="number"
+                        id="height"
+                        step="0.1"
+                        min="0"
+                        value={height}
+                        required
+                        onChange={(e) => setHeight(e.target.value)}
+                    />
+                </div>
+
+                <div>
+                    <label htmlFor="dimensionUnit">Dimension Unit *:</label>
+                    <select
+                        id="dimensionUnit"
+                        value={dimensionUnit}
+                        onChange={(e) => setDimensionUnit(e.target.value)}
+                    >
+                        <option value="in">in</option>
+                        <option value="cm">cm</option>
+                    </select>
                 </div>
 
                 <button type="submit" disabled={updating}>

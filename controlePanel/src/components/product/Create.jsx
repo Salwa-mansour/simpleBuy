@@ -18,6 +18,14 @@ function CreateProduct() {
     const [category, setCategory] = useState('');
     const [imageFile, setImageFile] = useState(null);
 
+    // Shipping states
+    const [weightValue, setWeightValue] = useState('1');
+    const [weightUnit, setWeightUnit] = useState('lb');
+    const [length, setLength] = useState('6');
+    const [width, setWidth] = useState('4');
+    const [height, setHeight] = useState('2');
+    const [dimensionUnit, setDimensionUnit] = useState('in');
+
     const [createError, setCreateError] = useState(null);
     const [submitting, setSubmitting] = useState(false);
 
@@ -47,7 +55,7 @@ function CreateProduct() {
                 formData.append('api_key', apiKey);
                 formData.append('timestamp', timestamp);
                 formData.append('signature', signature);
-                formData.append('folder', 'simleBuy'); // Adjust folder name if needed
+                formData.append('folder', 'simleBuy');
                 formData.append('transformation', 'w_400,c_limit');
 
                 // Upload directly to Cloudinary
@@ -73,7 +81,17 @@ function CreateProduct() {
                 price: Number(price),
                 stock: Number(stock),
                 category,
-                imageUrl: uploadedImageUrl
+                imageUrl: uploadedImageUrl,
+                weight: {
+                    value: Number(weightValue),
+                    unit: weightUnit
+                },
+                dimensions: {
+                    length: Number(length),
+                    width: Number(width),
+                    height: Number(height),
+                    unit: dimensionUnit
+                }
             };
 
             await axiosPrivate.post('/product/create', productData);
@@ -167,6 +185,83 @@ function CreateProduct() {
                         accept="image/*"
                         onChange={(e) => setImageFile(e.target.files[0])}
                     />
+                </div>
+
+                <hr />
+                <h3>Shipping Specifications</h3>
+
+                <div>
+                    <label htmlFor="weightValue">Weight *:</label>
+                    <input
+                        type="number"
+                        id="weightValue"
+                        step="0.1"
+                        min="0"
+                        value={weightValue}
+                        required
+                        onChange={(e) => setWeightValue(e.target.value)}
+                    />
+                    <select
+                        id="weightUnit"
+                        value={weightUnit}
+                        onChange={(e) => setWeightUnit(e.target.value)}
+                    >
+                        <option value="lb">lb</option>
+                        <option value="oz">oz</option>
+                        <option value="kg">kg</option>
+                        <option value="g">g</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label htmlFor="length">Length *:</label>
+                    <input
+                        type="number"
+                        id="length"
+                        step="0.1"
+                        min="0"
+                        value={length}
+                        required
+                        onChange={(e) => setLength(e.target.value)}
+                    />
+                </div>
+
+                <div>
+                    <label htmlFor="width">Width *:</label>
+                    <input
+                        type="number"
+                        id="width"
+                        step="0.1"
+                        min="0"
+                        value={width}
+                        required
+                        onChange={(e) => setWidth(e.target.value)}
+                    />
+                </div>
+
+                <div>
+                    <label htmlFor="height">Height *:</label>
+                    <input
+                        type="number"
+                        id="height"
+                        step="0.1"
+                        min="0"
+                        value={height}
+                        required
+                        onChange={(e) => setHeight(e.target.value)}
+                    />
+                </div>
+
+                <div>
+                    <label htmlFor="dimensionUnit">Dimension Unit *:</label>
+                    <select
+                        id="dimensionUnit"
+                        value={dimensionUnit}
+                        onChange={(e) => setDimensionUnit(e.target.value)}
+                    >
+                        <option value="in">in</option>
+                        <option value="cm">cm</option>
+                    </select>
                 </div>
 
                 <button type="submit" disabled={submitting}>

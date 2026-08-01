@@ -3,7 +3,7 @@ import { useRef } from 'react';
 import useAxiosPrivate from '../../hooks/useAxiosPrivate';
 import { useCart } from '../../context/CartProvider';
 
-function PayPalCheckoutSection({ shippingInfo, setOrderComplete, setStatusMessage, saveTheNewAddress }) {
+function PayPalCheckoutSection({ shippingInfo, setOrderComplete, setStatusMessage,selectedShippingRate,shippingCost, saveTheNewAddress }) {
   const axiosPrivate = useAxiosPrivate();
   const { cart, clearCart } = useCart();
 
@@ -30,6 +30,7 @@ function PayPalCheckoutSection({ shippingInfo, setOrderComplete, setStatusMessag
       const response = await axiosPrivate.post('/order/register', {
         items: cart,
         shippingAddress: shippingInfo,
+        shippingCost,
         saveTheNewAddress: Boolean(saveTheNewAddress), // boolean flag for backend handling
       });
 
@@ -57,7 +58,8 @@ function PayPalCheckoutSection({ shippingInfo, setOrderComplete, setStatusMessag
 
       const response = await axiosPrivate.post('/order/approve', {
         paymentId: data.orderID, // PayPal's order ID
-        orderID: dbOrderId,     // Your DB order ID from ref
+        orderId: dbOrderId,     // Your DB order ID from ref
+        rateId:selectedShippingRate, // Pass the selected shipping rate
       });
 
       console.log(response.data);
