@@ -12,19 +12,21 @@ const addressSnapshotSchema = new mongoose.Schema(
   { _id: false }
 );
 
-// --- NEW SHIPPING METADATA SCHEMA ---
+// --- SHIPPING METADATA SCHEMA ---
 const shippingDetailsSchema = new mongoose.Schema(
   {
-    rateId: { type: String }, // Shippo rate ID selected by customer
-    carrier: { type: String }, // e.g., 'USPS', 'FedEx', 'UPS'
-    serviceName: { type: String }, // e.g., 'Priority Mail', 'Ground Advantage'
+    rateId: { type: String },          // Shippo rate ID selected by customer
+    carrier: { type: String },         // e.g., 'USPS', 'FedEx', 'UPS'
+    serviceName: { type: String },     // e.g., 'Priority Mail', 'Ground Advantage'
     shippingCost: { type: Number, default: 0 }, // Cost charged for shipping
     
     // Label & Tracking info generated after purchasing via Shippo
-    transactionId: { type: String }, // Shippo transaction object ID
-    trackingNumber: { type: String }, // e.g., 9400100000000000000000
+    transactionId: { type: String },   // Shippo transaction object ID
+    trackingNumber: { type: String },  // e.g., 9400100000000000000000
     trackingUrl: { type: String },
-    labelUrl: { type: String } // Printable PDF URL provided by Shippo
+    labelUrl: { type: String },        // Printable PDF URL provided by Shippo
+    qrCodeUrl: { type: String },
+    purchasedAt: { type: Date }
   },
   { _id: false }
 );
@@ -58,7 +60,6 @@ const orderSchema = new mongoose.Schema(
       type: addressSnapshotSchema,
       required: true,
     },
-    // --- NEW SHIPPING DATA ATTACHMENT ---
     shippingDetails: {
       type: shippingDetailsSchema,
       default: () => ({})
@@ -75,7 +76,7 @@ const orderSchema = new mongoose.Schema(
       id: { type: String },
       status: { 
         type: String, 
-        enum: ['COMPLETED', 'DECLINED', 'PENDING','FAILED','REFUNDED'], 
+        enum: ['COMPLETED', 'DECLINED', 'PENDING', 'FAILED', 'REFUNDED'], 
         default: 'PENDING' 
       },
       provider: { 

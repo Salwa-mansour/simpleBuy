@@ -56,7 +56,7 @@ export const registerOrderWithPayment = catchAsync(async (req, res, next) => {
   }
   
   // 4. Create pending DB order with verified items
-  const order = await createBendingOrderService(userId, addressData, verifiedItems, totalPrice,subtotal);
+  const order = await createBendingOrderService(userId, addressData, verifiedItems, totalPrice,shippingCost,subtotal);
 
   // 5. Create PayPal payment session
   const paypalOrder = await createPayPalOrderService(subtotal);
@@ -93,7 +93,7 @@ export const approveOrderPayment = catchAsync(async (req, res, next) => {
   
   // Rate ID can come directly from req.body or be retrieved from your pending order DB record
   const chosenRateId = rateId ;
-console.log('Chosen Rate ID:', chosenRateId);
+
   if (chosenRateId) {
     try {
       shippingLabelData = await shippingService.generateShippingLabel(chosenRateId);
@@ -102,10 +102,10 @@ console.log('Chosen Rate ID:', chosenRateId);
       // Optional: attach label generation status/warning to logs
     }
   }
-console.log('Shipping Label Data:', shippingLabelData);
+
   // 4. Update Order DB with payment info and shipping label details
   const order = await verifyAndUpdateOrder(userId, orderId, paymentData, shippingLabelData);
-
+console.log("Updated Order:", order);
   // 5. Return updated order
   return res.status(200).json({
     success: true,

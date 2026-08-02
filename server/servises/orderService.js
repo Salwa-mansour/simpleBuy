@@ -1,9 +1,8 @@
 import Order from '../models/Order.js';
 import Product from '../models/Product.js';
-// import User from '../models/User.js';
 
 
-export const createBendingOrderService =async(userId,shippingAddress,orderItems,totalAmount,subtotal)=>{
+export const createBendingOrderService =async(userId,shippingAddress,orderItems,totalAmount,shippingCost,subtotal)=>{
   // 4. Create and persist the new Order
 
   const newOrder = await Order.create({
@@ -16,6 +15,10 @@ export const createBendingOrderService =async(userId,shippingAddress,orderItems,
       postalCode: shippingAddress.postalCode,
       country: shippingAddress.country,
     },
+    shippingDetails:{
+      shippingCost,
+    }
+    ,
     totalAmount,
    subtotal,
     status: 'pending',
@@ -26,6 +29,14 @@ export const createBendingOrderService =async(userId,shippingAddress,orderItems,
 
 export const verifyAndUpdateOrder = async (userId, orderId, paymentData, shippingLabelData) => {
   // 1. Find order by ID
+  console.log("shippingLabelData",shippingLabelData);
+
+  if(!shippingLabelData){
+    const error = new Error('shipping Label Data not found.');
+    error.statusCode = 404;
+    throw error;
+    }
+  
   const order = await Order.findById(orderId);
 
   if (!order) {
@@ -41,39 +52,42 @@ export const verifyAndUpdateOrder = async (userId, orderId, paymentData, shippin
     throw error;
   }
 
-  // 3. Prevent duplicate updates if order is already processed
-  if (order.status === 'paid') {
+  // 3. Idempotency: Prevent re-processing paid/labeled orders
+  if (['paid', 'label_created', 'shipped', 'delivered'].includes(order.status)) {
     return order;
   }
 
-  // 4. Extract PayPal details
-  const captureStatus = paymentData.status; // 'COMPLETED'
+  // 4. Extract PayPal payment details
+  const captureStatus = paymentData.status; // e.g., 'COMPLETED'
   const paymentDetails = paymentData.purchase_units?.[0]?.payments?.captures?.[0];
   const detailedStatus = paymentDetails?.status || captureStatus;
 
-  // 5. Update payment details
+  // 5. Update paymentInfo subdocument
   if (!order.paymentInfo) order.paymentInfo = {};
   order.paymentInfo.id = paymentData.id || paymentDetails?.id;
   order.paymentInfo.status = detailedStatus;
 
-  // 6. Attach Shipping Label Data if available
+  // 6. Merge Shipping Label Details without erasing existing shipping details
   if (shippingLabelData) {
-    order.shippingLabel = {
+    order.shippingDetails = {
+      ...order.shippingDetails?.toObject?.() || order.shippingDetails,
       transactionId: shippingLabelData.transactionId,
       trackingNumber: shippingLabelData.trackingNumber,
       trackingUrl: shippingLabelData.trackingUrl,
       labelUrl: shippingLabelData.labelUrl,
       qrCodeUrl: shippingLabelData.qrCodeUrl || null,
-      provider: shippingLabelData.provider ,
-      purchasedAt: shippingLabelData.purchasedAt || new Date()
+      carrier: shippingLabelData.provider || order.shippingDetails?.carrier,
+      purchasedAt: shippingLabelData.purchasedAt || new Date(),
+    
     };
   }
 
-  // 7. Handle status transition
+  // 7. Handle Order Status Transition & Inventory Deduction
   if (captureStatus === 'COMPLETED' || detailedStatus === 'COMPLETED') {
-    order.status = 'paid';
+    // Transition to label_created if label was generated, otherwise paid
+    order.status = shippingLabelData ? 'label_created' : 'paid';
 
-    // Deduct inventory
+    // Deduct stock for each item in the order
     for (const item of order.items) {
       await Product.findByIdAndUpdate(item.product, {
         $inc: { stock: -item.quantity }
@@ -85,135 +99,8 @@ export const verifyAndUpdateOrder = async (userId, orderId, paymentData, shippin
     order.status = 'pending';
   }
 
-  // 8. Save updated order document
+  // 8. Persist and return updated order
   await order.save();
 
   return order;
 };
-// export const createOrderService = async ({ userId, items, shippingAddress, paymentProvider, saveAddress }) => {
-//   // 1. Fetch products from DB to verify existence and get real server-side prices
-//   const productIds = items.map((item) => item.product);
-//   const dbProducts = await Product.find({ _id: { $in: productIds } });
-
-//   if (dbProducts.length !== items.length) {
-//     const error = new Error('One or more items in your cart are invalid or missing.');
-//     error.statusCode = 400;
-//     throw error;
-//   }
-
-//   // 2. Build verified order items & calculate total price
-//   let subtotal = 0;
-//   const verifiedOrderItems = items.map((item) => {
-//     const dbProduct = dbProducts.find((p) => p._id.toString() === item.product);
-//     const price = dbProduct.price;
-
-//     subtotal += price * item.quantity;
-
-//     return {
-//       product: dbProduct._id,
-//       quantity: item.quantity,
-//       priceAtPurchase: price,
-//     };
-//   });
-
-//   // Calculate shipping (e.g., free shipping over $50)
-//   const shippingFee = subtotal > 50 ? 0 : 5.99;
-//   const totalAmount = parseFloat((subtotal + shippingFee).toFixed(2));
-
-//   // 3. Save address to User profile if requested
-//   if (saveAddress) {
-//     await saveAddressToUserProfile(userId, shippingAddress);
-//   }
-
-//   // 4. Create and persist the new Order
-//   const newOrder = await Order.create({
-//     user: userId,
-//     items: verifiedOrderItems,
-//     shippingAddress: {
-//       fullName: shippingAddress.fullName,
-//       address: shippingAddress.address,
-//       city: shippingAddress.city,
-//       postalCode: shippingAddress.postalCode,
-//       country: shippingAddress.country,
-//     },
-//     totalAmount,
-//     paymentProvider: paymentProvider || 'paypal',
-//     status: 'pending',
-//   });
-
-//   return newOrder;
-// };
-
-/**
- * Helper function to push a new address to a user's address array if not already saved.
- */
-// const saveAddressToUserProfile = async (userId, shippingAddress) => {
-//   const user = await User.findById(userId);
-//   if (!user) return;
-
-//   const { fullName, address, city, postalCode, country } = shippingAddress;
-
-//   const addressExists = user.addresses.some(
-//     (addr) =>
-//       addr.address.toLowerCase() === address.toLowerCase() &&
-//       addr.postalCode.toLowerCase() === postalCode.toLowerCase()
-//   );
-
-//   if (!addressExists) {
-//     user.addresses.push({
-//       fullName,
-//       address,
-//       city,
-//       postalCode,
-//       country,
-//       isDefault: user.addresses.length === 0,
-//     });
-//     await user.save();
-//   }
-// };
-// export const verifyAndPayOrderService = async ({ orderId, userId, paymentId, paymentProvider }) => {
-//   // 1. Find order by ID
-//   const order = await Order.findById(orderId);
-
-//   if (!order) {
-//     const error = new Error('Order not found.');
-//     error.statusCode = 404;
-//     throw error;
-//   }
-
-//   // 2. Authorization check: ensure order belongs to the authenticated user
-//   if (order.user.toString() !== userId.toString()) {
-//     const error = new Error('Not authorized to update this order.');
-//     error.statusCode = 403;
-//     throw error;
-//   }
-
-//   // 3. Prevent re-paying an already processed order
-//   if (order.status === 'paid') {
-//     const error = new Error('Order is already marked as paid.');
-//     error.statusCode = 400;
-//     throw error;
-//   }
-
-//   // 4. Update order details
-//   order.status = 'paid';
-//   order.paymentId = paymentId;
-//   if (paymentProvider) {
-//     order.paymentProvider = paymentProvider;
-//   }
-
-//   const updatedOrder = await order.save();
-//   return updatedOrder;
-// };
-
-// export const getUserAddressesService = async (userId) => {
-//   const user = await User.findById(userId).select('addresses');
-
-//   if (!user) {
-//     const error = new Error('User not found.');
-//     error.statusCode = 404;
-//     throw error;
-//   }
-
-//   return user.addresses || [];
-// };

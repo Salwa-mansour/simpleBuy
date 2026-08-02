@@ -79,7 +79,7 @@ const formatCountryCode = (country) => {
  * Fetches available shipping options from Shippo.
  */
 export const getShippingOptions = async (addressData, packageDetails) => {
-  console.log("Address Data:", addressData);
+
 
   // 1. Destination Address
   const addressTo = {
@@ -124,8 +124,7 @@ export const getShippingOptions = async (addressData, packageDetails) => {
     async: false
   });
 
-  console.log("addressFrom:", addressFrom);
-  console.log("addressTo:", addressTo);
+
 
   // 5. Normalize rates for frontend
   const shippingOptions = shipment.rates.map((rate) => ({
@@ -156,7 +155,7 @@ export const generateShippingLabel = async (rateId) => {
     async: false,
   });
 
-  console.log('Shippo Transaction Response:', transaction);
+ 
 
   if (transaction.status !== 'SUCCESS') {
     const errorMessage = transaction.messages?.[0]?.text || transaction.messages?.[0]?.message || 'Shippo failed to purchase label.';
