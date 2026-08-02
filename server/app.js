@@ -25,7 +25,9 @@ const app = express();
 connectDB();
 
 // CORS configuration
-const allowedOrigins = ['http://localhost:5173'];
+const allowedOrigins = process.env.NODE_ENV === 'production'
+    ? [process.env.PRODUCTION_CLIENT , process.env.PRODUCTION_CLIENT_2]
+    : [process.env.DEVELOPMENT_CLIENT];
 const corsOptions = {
   origin: allowedOrigins, 
   credentials: true,                

@@ -18,12 +18,17 @@ router.post('/login', signInValidation, handleValidationErrors,loginUser);
 router.get('/refresh', refreshToken);
 router.post('/logout', logoutUser);
 // 1. Kicks user to Google's sign-in page
+
+const clientUrl = process.env.NODE_ENV === 'production'
+                    ? [process.env.PRODUCTION_CLIENT] 
+                    : [process.env.DEVELOPMENT_CLIENT];
+
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
 // 2. Google redirects back here after user signs in successfully
 router.get(
   '/google/login',
-  passport.authenticate('google', { session: false, failureRedirect: 'http://localhost:5173/login' }),googleAuth);
+  passport.authenticate('google', { session: false, failureRedirect: `${clientUrl}/login` }),googleAuth);
 
 
 export default router;

@@ -176,7 +176,11 @@ export const googleAuth = catchAsync(async (req, res, next) => {
 
   // 1. Generate the access token and set your secure HttpOnly cookie!
   const accessToken = await generateAndSendTokens(req.user, res);
-  
+  const clientUrl = process.env.NODE_ENV === 'production'
+                        ? [process.env.PRODUCTION_CLIENT] // <-- Replace with your live frontend URL
+                        : [process.env.DEVELOPMENT_CLIENT]; // Local development URL
+                    
+                        
   // 2. Redirect back to your React client with the short-lived access token
-  return res.redirect(`http://localhost:5173/oauth-callback?token=${accessToken}`);
+  return res.redirect(`${clientUrl}/oauth-callback?token=${accessToken}`);
 });
