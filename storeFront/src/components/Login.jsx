@@ -11,7 +11,7 @@ const LOGIN_URL = 'auth/login';
 import { faEye,faEyeSlash} from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"; 
 
-const login = () => {
+const Login = () => {
     const { setAuth } = useAuth();
 
     const navigate = useNavigate();
@@ -118,7 +118,7 @@ const login = () => {
                      <label htmlFor="persist">trust this devise</label>
             </div>
         </form>
-        {/* <a href={`${import.meta.env.VITE_API_URL}/auth/google/login`} className="google-btn">
+        {/* <a href={`${import.meta.env.VITE_API_URL}/auth/google/login`}  className="google-btn">
             Sign in with Google
         </a> */}
         <p>Need an account? <a href="/register">Register</a></p>
@@ -127,4 +127,4 @@ const login = () => {
   )
 }
 
-export default login
+export default Login
