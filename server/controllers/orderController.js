@@ -3,15 +3,19 @@ import { updateUserAddressService } from "../servises/userService.js";
 import { calculateCartTotal } from "../servises/productService.js";
 import { createPayPalOrderService,capturePayPalOrderService } from "../servises/paypalService.js";
 import * as shippingService from "../servises/shippingService.js";
+import {getEmailByUserId} from "../servises/userService.js";
 import catchAsync from "../utils/catchAsyncError.js";
 import { json } from "express";
 
 
 export const getShippingOptions = catchAsync(async (req, res, next) => {
-   const addressData = req.body.shippingAddress;
+   const userId = req.user.userId || req.user.id;
+   let addressData = req.body.shippingAddress;
    const cartItems = req.body.items;
+   const email = await getEmailByUserId(userId);
+   addressData = { ...addressData, email }; // Merge email into addressData
 
-   const {verifiedItems,totalPrice} = await calculateCartTotal(cartItems);
+    const {verifiedItems,totalPrice} = await calculateCartTotal(cartItems);
    if (!verifiedItems || verifiedItems.length === 0) {
     return res.status(400).json({ message: 'Selected items are invalid or out of stock.' });
   }
@@ -104,13 +108,31 @@ export const approveOrderPayment = catchAsync(async (req, res, next) => {
   }
 
   // 4. Update Order DB with payment info and shipping label details
-  const order = await verifyAndUpdateOrder(userId, orderId, paymentData, shippingLabelData);
-console.log("Updated Order:", order);
+  const updatedOrder = await verifyAndUpdateOrder(userId, orderId, paymentData, shippingLabelData);
+
   // 5. Return updated order
   return res.status(200).json({
-    success: true,
-    data: order,
-  });
+      success: true,
+      message: 'Order placed successfully and shipping label generated.',
+      data: {
+        orderId: updatedOrder._id,
+        status: updatedOrder.status,
+        totalAmount: updatedOrder.totalAmount,
+        payment: {
+          id: updatedOrder.paymentInfo.id,
+          status: updatedOrder.paymentInfo.status,
+          provider: updatedOrder.paymentInfo.provider
+        },
+        shipping: {
+          carrier: updatedOrder.shippingDetails.carrier,
+          serviceName: updatedOrder.shippingDetails.serviceName,
+          trackingNumber: updatedOrder.shippingDetails.trackingNumber,
+          trackingUrl: updatedOrder.shippingDetails.trackingUrl,
+          // Only send labelUrl if this endpoint is called by an admin/seller
+        //  labelUrl: req.user.role === 'admin' ? updatedOrder.shippingDetails.labelUrl : undefined
+        }
+      }
+    });
 });
 
 

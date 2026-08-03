@@ -28,8 +28,7 @@ export const createBendingOrderService =async(userId,shippingAddress,orderItems,
 }
 
 export const verifyAndUpdateOrder = async (userId, orderId, paymentData, shippingLabelData) => {
-  // 1. Find order by ID
-  console.log("shippingLabelData",shippingLabelData);
+
 
   if(!shippingLabelData){
     const error = new Error('shipping Label Data not found.');
