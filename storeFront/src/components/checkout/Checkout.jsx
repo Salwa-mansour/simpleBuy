@@ -36,6 +36,7 @@ function Checkout() {
 
     // UI states
     const [orderComplete, setOrderComplete] = useState(false);
+    const [orderCompletionData, setOrderCompletionData] = useState(null);
     const [statusMessage, setStatusMessage] = useState(null);
 
     // 3. Assemble shippingInfo payload
@@ -142,20 +143,101 @@ function Checkout() {
     const shippingCost = selectedRate ? selectedRate.rate : 0;
     const finalGrandTotal = totalPrice + shippingCost;
 
-    if (orderComplete) {
-        return (
-            <div>
-                <div>🎉</div>
-                <h2>Order Confirmed!</h2>
-                <p>
-                    Thank you, <strong>{fullName}</strong>. We've received your order and will process it shortly.
-                </p>
-                <button onClick={() => navigate('/')}>
-                    Continue Shopping
-                </button>
+if (orderComplete) {
+  // Safely extract the inner data object from API response
+  const order = orderCompletionData?.data || {};
+  const { orderId, status, totalAmount, payment, shipping } = order;
+
+  return (
+    <div className="order-success-container">
+      {/* Success Banner */}
+      <div className="text-center">
+        <div style={{ fontSize: '3rem' }}>🎉</div>
+        <h2>Order Confirmed!</h2>
+        <p>
+          Thank you, <strong>{fullName}</strong>. We've received your order and are getting it ready for shipment.
+        </p>
+      </div>
+
+      {/* Main Details Card */}
+      <div className="order-card" style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '1.5rem', margin: '1.5rem 0' }}>
+        <h3>Order Summary</h3>
+        
+        <div style={{ display: 'grid', gap: '0.75rem', marginTop: '1rem' }}>
+          <div>
+            <strong>Order ID:</strong> <span style={{ fontFamily: 'monospace' }}>{orderId}</span>
+          </div>
+          
+          <div>
+            <strong>Total Paid:</strong> ${totalAmount?.toFixed(2)}
+          </div>
+          
+          <div>
+            <strong>Payment Method:</strong> {payment?.provider?.toUpperCase()} ({payment?.status})
+          </div>
+
+          <div>
+            <strong>Status:</strong> <span style={{ textTransform: 'capitalize' }}>{status?.replace('_', ' ')}</span>
+          </div>
+
+          <hr style={{ margin: '0.75rem 0', borderColor: '#edf2f7' }} />
+
+          {/* Shipping Details */}
+          {shipping?.trackingNumber && (
+            <div className="shipping-info">
+              <h4>Shipping Details</h4>
+              <p style={{ margin: '0.25rem 0' }}>
+                <strong>Carrier:</strong> {shipping.carrier}
+              </p>
+              <p style={{ margin: '0.25rem 0' }}>
+                <strong>Tracking Number:</strong> <span style={{ fontFamily: 'monospace' }}>{shipping.trackingNumber}</span>
+              </p>
+
+              {shipping.trackingUrl && (
+                <div style={{ marginTop: '0.75rem' }}>
+                  <a
+                    href={shipping.trackingUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="track-package-btn"
+                    style={{
+                      display: 'inline-block',
+                      padding: '0.5rem 1rem',
+                      backgroundColor: '#2563eb',
+                      color: '#ffffff',
+                      borderRadius: '4px',
+                      textDecoration: 'none',
+                      fontWeight: '500'
+                    }}
+                  >
+                    Track Package on {shipping.carrier} ↗
+                  </a>
+                  <p style={{ fontSize: '0.85rem', color: '#f0f5ff', marginTop: '0.25rem' }}>
+                        * Tracking information may take up to 24 hours to update after label creation.
+                    </p>
+                </div>
+              )}
             </div>
-        );
-    }
+          )}
+        </div>
+      </div>
+
+      {/* Action Controls */}
+      <div className="actions" style={{ textAlign: 'center' }}>
+        <button 
+          onClick={() => navigate('/')}
+          style={{
+            padding: '0.75rem 1.5rem',
+            cursor: 'pointer',
+            borderRadius: '4px'
+          }}
+        >
+          Continue Shopping
+        </button>
+      </div>
+    </div>
+  );
+}
 
     if (!cart || cart.length === 0) {
         return (
@@ -411,6 +493,7 @@ function Checkout() {
                         shippingCost={shippingCost}
                         saveTheNewAddress={saveTheNewAddress || !hasExistingAddress}
                         setOrderComplete={setOrderComplete}
+                        setOrderCompletionData={setOrderCompletionData}
                         setStatusMessage={setStatusMessage}
                     />
                 </div>

@@ -3,7 +3,7 @@ import { useRef } from 'react';
 import useAxiosPrivate from '../../hooks/useAxiosPrivate';
 import { useCart } from '../../context/CartProvider';
 
-function PayPalCheckoutSection({ shippingInfo, setOrderComplete, setStatusMessage,selectedShippingRate,shippingCost, saveTheNewAddress }) {
+function PayPalCheckoutSection({ shippingInfo, setOrderComplete,setOrderCompletionData, setStatusMessage,selectedShippingRate,shippingCost, saveTheNewAddress }) {
   const axiosPrivate = useAxiosPrivate();
   const { cart, clearCart } = useCart();
 
@@ -62,8 +62,8 @@ function PayPalCheckoutSection({ shippingInfo, setOrderComplete, setStatusMessag
         rateId:selectedShippingRate, // Pass the selected shipping rate
       });
 
-      console.log(response.data);
-
+      
+      setOrderCompletionData(response.data); // Store the order completion data
       if (response.data.success) {
         clearCart();
         if (setOrderComplete) setOrderComplete(true);
