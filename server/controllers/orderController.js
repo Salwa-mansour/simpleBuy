@@ -5,6 +5,7 @@ import { createPayPalOrderService,capturePayPalOrderService } from "../servises/
 import * as shippingService from "../servises/shippingService.js";
 import {getEmailByUserId} from "../servises/userService.js";
 import catchAsync from "../utils/catchAsyncError.js";
+import { sendOrderConfirmationEmail } from '../utils/sendEmail.js';
 import { json } from "express";
 
 
@@ -109,7 +110,12 @@ export const approveOrderPayment = catchAsync(async (req, res, next) => {
 
   // 4. Update Order DB with payment info and shipping label details
   const updatedOrder = await verifyAndUpdateOrder(userId, orderId, paymentData, shippingLabelData);
-
+     const email = await getEmailByUserId(userId);
+        sendOrderConfirmationEmail( updatedOrder,email).catch((emailErr) => {
+        // Log error to monitoring tools without disrupting the user flow
+        console.error('Failed to send order confirmation email:', emailErr);
+      });
+    
   // 5. Return updated order
   return res.status(200).json({
       success: true,
