@@ -86,3 +86,25 @@ export const sendOrderConfirmationEmail = async ( order,toEmail ) => {
 
   return await transporter.sendMail(mailOptions);
 };
+export const sendDeliveryEmail = async ({ toEmail, fullName, orderId, trackingNumber }) => {
+  const htmlContent = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+      <h2 style="color: #16a34a;">📦 Your Package Has Arrived!</h2>
+      <p>Hi ${fullName},</p>
+      <p>Great news! Your package for order <strong>#${orderId}</strong> has been marked as <strong>DELIVERED</strong>.</p>
+      
+      <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 16px; border-radius: 6px; margin: 20px 0;">
+        <p style="margin: 0; color: #15803d;"><strong>Tracking Number:</strong> ${trackingNumber}</p>
+      </div>
+
+      <p>Please check your porch, mailbox, or front door. If you have any questions or issue with your item, feel free to reply to this email!</p>
+    </div>
+  `;
+
+  return await transporter.sendMail({
+    from: `"Your Store Name" <${process.env.EMAIL_USER}>`,
+    to: toEmail,
+    subject: `Delivered: Order #${orderId}`,
+    html: htmlContent
+  });
+};

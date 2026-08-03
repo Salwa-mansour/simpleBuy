@@ -16,6 +16,7 @@ import categoryRouter from './routes/categoryRouter.js';
 import productRouter from './routes/productRouter.js';
 import orderRouter from "./routes/orderRouter.js";
 import userRouter from "./routes/userRouter.js";
+import webhookRouter from "./routes/webhookRoutes.js";
 
 import './config/passport.js';
 
@@ -50,6 +51,7 @@ app.use("/category",categoryRouter);
 app.use("/product",productRouter);
 app.use("/order",orderRouter);
 app.use("/user",userRouter);
+app.use("/webhook", webhookRouter);
 
 
 // --- 1. 404 CATCH-ALL HANDLER (Must be after defined routes) ---
