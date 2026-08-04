@@ -4,6 +4,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    outline:1px solid red;
 }
 
 html {
@@ -16,12 +17,16 @@ body {
     min-height: 100vh;
    
 }
+a{
+    text-decoration: none;
+}
 #root{
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: dodgerblue;
+  background: #030129;
+background: linear-gradient(90deg, rgba(3, 1, 41, 1) 0%, rgba(8, 8, 56, 1) 49%, rgba(2, 5, 28, 1) 100%);
 }
 .App {
   display: flex;
@@ -29,22 +34,48 @@ body {
   justify-content: center;
   align-items: center;
   min-height: 100vh; 
-  padding: 1rem 0.5rem;
-  width: min(95vw, 400px);
+ 
+  width: min(100vw, 400px);
+  background-color: #e9e9eb;
+  color:#333333;
 }
 
-section {
+
+.main-container{
     width: 100%;
     /* max-width: 420px; */
     /* min-height: 400px; */
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    padding: 1rem;
-    background-color: rgba(0,0,0,0.4);
+  
+   
 }
-
 .title{
     margin-bottom: .5rem;
     text-align: center;
+}
+ul{
+    list-style: none;
+  
+}
+nav{
+    width: 100%;
+    position: sticky;
+    background-color: #e9e9eb;
+    top: 0;
+}
+nav ul{
+    display: flex;
+    align-items: center;
+    gap:.5rem;
+}
+nav img{
+    display: block;
+    height: 30px;
+    width: auto;
+}
+nav ul li:first-child{
+    margin-inline-end: auto;
+    padding-inline-start: .25rem;
 }

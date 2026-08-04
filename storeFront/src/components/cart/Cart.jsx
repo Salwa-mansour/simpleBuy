@@ -93,7 +93,7 @@ const Cart = () => {
                         <FontAwesomeIcon icon={faArrowLeft} /> Continue Shopping
                     </Link>
                 </ul>
-
+             </div>
                 {/* Summary Box */}
                 <div className="summary-box" >
                     <h3 style={{ marginTop: 0, marginBottom: '1rem', borderBottom: '1px solid #edf2f7', paddingBottom: '0.5rem' }}>Order Summary</h3>
@@ -135,7 +135,7 @@ const Cart = () => {
                                 Proceed to Checkout
                                 </button>
                 </div>
-            </div>
+           
         </section>
     );
 };

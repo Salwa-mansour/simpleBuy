@@ -18,9 +18,11 @@ function Nav() {
 
     return (
         <nav>
-            <ul style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', listStyle: 'none' }}>
+            <ul >
                 <li>
-                    <Link to="/">home</Link>
+                    <Link to="/">
+                    <img src='./logoipsum-blackandwhite.svg' width="100" />
+                    </Link>
                 </li>
                
                     {!auth?.accessToken && (
@@ -29,7 +31,7 @@ function Nav() {
                         </li>
                     )}
                 {/* Cart Icon & Trigger */}
-                <li className="cart-link" style={{ position: "relative" }}>
+                <li className="cart-link" >
                     <button
                         type="button"
                         onClick={toggleCart}

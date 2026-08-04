@@ -18,8 +18,8 @@ function ProductList() {
     }
 
     return (
-        <section className="store-container" style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
-            <h2 style={{ marginBottom: '1.5rem' }}>Store Products</h2>
+        <section className="main-container">
+            <h2 className='title'>Store Products</h2>
 
             {!products || products.length === 0 ? (
                 <p>No products available yet. Check back soon!</p>
