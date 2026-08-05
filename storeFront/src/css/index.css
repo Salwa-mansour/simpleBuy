@@ -4,7 +4,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    outline:1px solid red;
+    /* outline:1px solid red; */
 }
 
 html {
@@ -78,4 +78,36 @@ nav .logo{
 nav .nav-links li:first-child{
     margin-inline-end: auto;
     padding-inline-start: .25rem;
+}
+.product-grid{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .25rem;
+    background-color: #ffffff;
+    padding: .25rem;
+}
+.product-card{
+    
+     background-color: #e9e9eb;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    
+                             
+}
+.product-card figure{
+    height: 200px;
+    width: 100%;
+    background-color: #ffffff;
+    display:block
+}
+.product-card figure img{
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+.product-card .product-data{
+    outline: 1px solid red;
+    padding: .25rem;
 }

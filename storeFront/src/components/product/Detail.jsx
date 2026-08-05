@@ -38,7 +38,7 @@ function ProductDetails() {
                         ? fetchError 
                         : fetchError?.message || "Product not found or failed to load."}
                 </p>
-                <Link to="/store" style={{ color: '#3182ce', textDecoration: 'none' }}>
+                <Link to="/" style={{ color: '#3182ce', textDecoration: 'none' }}>
                     <FontAwesomeIcon icon={faArrowLeft} style={{ marginRight: '6px' }} />
                     Back to Store
                 </Link>
@@ -66,7 +66,7 @@ function ProductDetails() {
         <section style={{ maxWidth: '1000px', margin: '0 auto', padding: '2rem' }}>
             {/* Back Button */}
             <Link 
-                to="/store" 
+                to="/" 
                 style={{ 
                     display: 'inline-flex', 
                     alignItems: 'center', 
