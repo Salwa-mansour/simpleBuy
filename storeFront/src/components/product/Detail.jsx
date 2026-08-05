@@ -63,47 +63,15 @@ function ProductDetails() {
         : null;
 
     return (
-        <section style={{ maxWidth: '1000px', margin: '0 auto', padding: '2rem' }}>
+        <section  className="main-container">
             {/* Back Button */}
-            <Link 
-                to="/" 
-                style={{ 
-                    display: 'inline-flex', 
-                    alignItems: 'center', 
-                    gap: '8px', 
-                    color: '#4a5568', 
-                    textDecoration: 'none',
-                    marginBottom: '1.5rem',
-                    fontWeight: '500'
-                }}
-            >
+            <Link to="/"   >
                 <FontAwesomeIcon icon={faArrowLeft} /> Back to Store
             </Link>
 
-            <div 
-                style={{ 
-                    display: 'grid', 
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
-                    gap: '2.5rem',
-                    backgroundColor: '#fff',
-                    padding: '2rem',
-                    borderRadius: '8px',
-                    border: '1px solid #e2e8f0'
-                }}
-            >
+            <article className="product-Detail" >
                 {/* Left Column: Product Image */}
-                <div 
-                    style={{ 
-                        width: '100%', 
-                        height: '350px', 
-                        backgroundColor: '#f7fafc',
-                        borderRadius: '8px',
-                        overflow: 'hidden',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                    }}
-                >
+                <figure >
                     {product.imageUrl ? (
                         <img 
                             src={product.imageUrl} 
@@ -113,10 +81,10 @@ function ProductDetails() {
                     ) : (
                         <span style={{ color: '#a0aec0', fontSize: '1rem' }}>No Image Available</span>
                     )}
-                </div>
+                </figure>
 
                 {/* Right Column: Product Information */}
-                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div className='product-info' style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                     <div>
                         {/* Category Tag */}
                         <span 
@@ -231,7 +199,7 @@ function ProductDetails() {
                         </div>
                     )}
                 </div>
-            </div>
+            </article>
         </section>
     );
 }

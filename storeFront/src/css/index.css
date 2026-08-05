@@ -107,7 +107,8 @@ nav .nav-links li:first-child{
     object-fit: cover;
     object-position: center;
 }
-.product-card .product-data{
-    outline: 1px solid red;
+.product-card .product-data,
+.product-info{
+   
     padding: .25rem;
 }
