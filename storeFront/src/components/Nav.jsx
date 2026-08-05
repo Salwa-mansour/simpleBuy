@@ -18,10 +18,10 @@ function Nav() {
 
     return (
         <nav>
-            <ul >
+            <ul className="nav-links" >
                 <li>
                     <Link to="/">
-                    <img src='./logoipsum-blackandwhite.svg' width="100" />
+                    <img src='./logoipsum-blackandwhite.svg' width="100" className="logo" />
                     </Link>
                 </li>
                

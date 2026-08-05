@@ -65,17 +65,17 @@ nav{
     background-color: #e9e9eb;
     top: 0;
 }
-nav ul{
+nav .nav-links{
     display: flex;
     align-items: center;
     gap:.5rem;
 }
-nav img{
+nav .logo{
     display: block;
     height: 30px;
     width: auto;
 }
-nav ul li:first-child{
+nav .nav-links li:first-child{
     margin-inline-end: auto;
     padding-inline-start: .25rem;
 }
