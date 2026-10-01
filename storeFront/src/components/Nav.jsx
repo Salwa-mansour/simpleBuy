@@ -4,12 +4,12 @@ import LogoutBtn from "./LogoutBtn";
 import CartPopup from "./cart/CartPopup";
 import { useCart } from "../context/CartProvider";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faShoppingCart } from "@fortawesome/free-solid-svg-icons";
+import { faShoppingCart,faArrowRightFromBracket } from "@fortawesome/free-solid-svg-icons";
 import { useAuth } from "../hooks/useAuth";
 import '../css/cart.css';
 
 function Nav() {
-    const { totalItems, showCart, setShowCart } = useCart();
+    const { totalItems, showCart, setShowCart ,clearCart} = useCart();
     const {auth} =useAuth();
 
     const toggleCart = () => {
@@ -27,7 +27,9 @@ function Nav() {
                
                     {!auth?.accessToken && (
                         <li>
-                        <Link to="/login">login</Link>
+                        <Link to="/login" title="Login" className="login-link">
+                        <FontAwesomeIcon  icon={ faArrowRightFromBracket} />
+                        </Link>
                         </li>
                     )}
                 {/* Cart Icon & Trigger */}
@@ -48,7 +50,7 @@ function Nav() {
                     </button>
 
                     {/* Cart Popup Overlay */}
-                    <CartPopup showCart={showCart} setShowCart={setShowCart} />
+                    <CartPopup showCart={showCart} setShowCart={setShowCart} clearCart={clearCart} />
                 </li>
                 {auth?.accessToken && (
                 <li>

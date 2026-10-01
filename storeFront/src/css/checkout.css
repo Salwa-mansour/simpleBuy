@@ -1,5 +1,7 @@
 .checkout-page{
-    padding:.5rem
+    padding:.5rem;
+    position: relative; /* Establishes a local container */
+    z-index: 1;        /* Keeps it at the base layer */
 }
 .order-items,
 .checkout-sammury {

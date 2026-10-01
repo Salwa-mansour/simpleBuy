@@ -3,7 +3,7 @@ import { useRef } from 'react';
 import useAxiosPrivate from '../../hooks/useAxiosPrivate';
 import { useCart } from '../../context/CartProvider';
 
-function PayPalCheckoutSection({ shippingInfo, setOrderComplete,setOrderCompletionData, setStatusMessage,selectedShippingRate,shippingCost, saveTheNewAddress }) {
+function PayPalCheckoutSection({ shippingInfo, setOrderComplete,setOrderCompletionData, setStatusMessage,selectedShippingRate,shippingCost, saveTheNewAddress,isDisabled }) {
   const axiosPrivate = useAxiosPrivate();
   const { cart, clearCart } = useCart();
 
@@ -14,16 +14,25 @@ function PayPalCheckoutSection({ shippingInfo, setOrderComplete,setOrderCompleti
   const dbOrderIdRef = useRef(null);
 
   const handleCreateOrder = async () => {
-    // Basic validation check
-    if (!shippingInfo) {
-      if (setStatusMessage) {
-        setStatusMessage({
-          type: 'error',
-          text: 'Please provide a shipping address before proceeding to payment.',
-        });
-      }
-      throw new Error('Missing shipping address');
-    }
+      if (isDisabled) {
+          if (setStatusMessage) {
+            setStatusMessage({
+              type: 'error',
+              text: 'Please select a shipping option to proceed with payment.',
+            });
+          }
+          throw new Error('Checkout is disabled. Please select a shipping rate.');
+        }
+
+        if (!shippingInfo) {
+          if (setStatusMessage) {
+            setStatusMessage({
+              type: 'error',
+              text: 'Please provide a shipping address before proceeding to payment.',
+            });
+          }
+          throw new Error('Missing shipping address');
+        }
 
     try {
       // Pass saveTheNewAddress flag along with items and shipping address

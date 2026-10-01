@@ -149,9 +149,9 @@ if (orderComplete) {
   const { orderId, status, totalAmount, payment, shipping } = order;
 
   return (
-    <div className="order-success-container">
+    <div className="checkout-page">
       {/* Success Banner */}
-      <div className="text-center">
+      <div style={{ textAlign: 'center' }}>
         <div style={{ fontSize: '3rem' }}>🎉</div>
         <h2>Order Confirmed!</h2>
         <p>
@@ -241,10 +241,10 @@ if (orderComplete) {
 
     if (!cart || cart.length === 0) {
         return (
-            <div>
+            <div className='empty-checkout'>
                 <h3>Your cart is empty</h3>
                 <p>Add some items to your cart before proceeding to checkout.</p>
-                <Link to="/">Browse Products</Link>
+                <Link to="/" className='main-btn'>Browse Products</Link>
             </div>
         );
     }
@@ -402,7 +402,7 @@ if (orderComplete) {
                         type="button" 
                         onClick={checkShipmentOptions}
                         disabled={fetchingRates}
-                        className='btn-secondary'
+                        className='main-btn'
                     >
                         {fetchingRates ? 'Calculating rates...' : 'Calculate Shipping Options'}
                     </button>
@@ -485,8 +485,13 @@ if (orderComplete) {
                         <span>${finalGrandTotal.toFixed(2)}</span>
                     </div>
                 </div>
-
-                <div>
+                 {!selectedRate && (
+                        <p style={{ color: 'red', fontSize: '0.9rem', marginBottom: '0.5rem' ,textAlign:'center' }}>
+                            Please select a shipping option to proceed with payment.
+                        </p>
+                    )}
+               <div className={!selectedRate ? 'disabled' : ''} aria-disabled={!selectedRate}>
+                   
                     <PayPalCheckoutSection
                         shippingInfo={shippingInfo}
                         selectedShippingRate={selectedRate?.id}
@@ -495,6 +500,7 @@ if (orderComplete) {
                         setOrderComplete={setOrderComplete}
                         setOrderCompletionData={setOrderCompletionData}
                         setStatusMessage={setStatusMessage}
+                        isDisabled={!selectedRate} // <-- Pass down the disable state
                     />
                 </div>
             </div>

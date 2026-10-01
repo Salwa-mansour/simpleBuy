@@ -5,7 +5,7 @@ import { faTimes, faArrowLeft, faShoppingBag } from '@fortawesome/free-solid-svg
 import '../../css/cart.css';
 
 const Cart = () => {
-    const { cart, removeFromCart, updateQuantity, clearCart, totalPrice, totalItems,setShowCart } = useCart();
+    const { cart, removeFromCart, updateQuantity, totalPrice, totalItems,setShowCart } = useCart();
     const navigate = useNavigate();
 
     if (cart.length === 0) {
@@ -16,14 +16,7 @@ const Cart = () => {
                 <p style={{ color: '#718096', marginBottom: '1.5rem' }}>Looks like you haven't added anything to your cart yet.</p>
                 <Link
                     to="/"
-                    style={{
-                        backgroundColor: '#3182ce',
-                        color: '#fff',
-                        padding: '0.6rem 1.2rem',
-                        borderRadius: '4px',
-                        textDecoration: 'none',
-                        fontWeight: '500'
-                    }}
+                    className="main-btn"
                 >
                     Start Shopping
                 </Link>
@@ -33,16 +26,9 @@ const Cart = () => {
 
     return (
         <section  className="cart-container" >
-            <div className="cart-header" >
-                <h2>Your Shopping Cart ({totalItems} items)</h2>
-                <button
-                    onClick={clearCart}
-                    style={{ background: 'none', border: 'none', color: '#e53e3e', cursor: 'pointer', fontWeight: '500' }}
-                >
-                    Clear Cart
-                </button>
-            </div>
-
+           
+            <h2 className='cart-title'>Your Shopping Cart ({totalItems} items)</h2>
+               
             <div className="cart-contents" >
                 {/* Cart Items List */}
                 <ul className="cart-items" >
@@ -118,7 +104,7 @@ const Cart = () => {
                                     setShowCart(false);
                                     navigate('/checkout');
                                 }}
-                              
+                              className="main-btn"
                                 >
                                 Proceed to Checkout
                                 </button>
