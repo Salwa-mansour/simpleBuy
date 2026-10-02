@@ -3,6 +3,7 @@ import useFetchItems from '../../hooks/useFetchItems';
 import { useCart } from '../../context/CartProvider';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowRight,faCartPlus } from '@fortawesome/free-solid-svg-icons';
+import '../../css/product.css';
 
 
 function ProductList() {
@@ -38,118 +39,58 @@ function ProductList() {
                         const isOutOfStock = product.stock <= 0;
 
                         return (
-                            <div 
-                                key={productId} 
-                                className="product-card"
-                               
-                            >
-                                
+                            <div  key={productId} className="product-card" >
                                     {/* Image Display */}
-                                        <Link 
-                                            to={`/products/${productId}`}>
-                                            <figure >
-                                                {product.imageUrl ? (
-                                                    <img 
-                                                        src={product.imageUrl} 
-                                                        alt={product.title} 
-                                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                                    />
-                                                ) : (
-                                                    <span style={{ color: '#a0aec0', fontSize: '0.9rem' }}>No Image</span>
-                                                )}
-                                            </figure>
-                                    </Link>
+                                    <figure >
+                                            <img 
+                                                src={product?.imageUrl} 
+                                                alt={product?.title} 
+                                                
+                                            />
+                                    </figure>
+                                   
                                     <div className="product-data" >
                                         {/* Category & Title */}
                                         <span 
-                                            style={{ 
-                                                fontSize: '0.75rem', 
-                                                color: '#718096', 
-                                                textTransform: 'uppercase',
-                                                letterSpacing: '0.05em'
-                                            }}
+                                           className="category-label"
                                         >
                                             {categoryName}
                                         </span>
                                         
-                                        <h5 style={{ fontSize: '1rem', margin: '0 0 0.5rem 0' }}>
+                                        <h5 >
                                             {product.title}
                                         </h5>
 
-                                        {/* Description Preview */}
-                                        {/* {product.description && (
-                                            <p style={{ 
-                                                fontSize: '0.875rem', 
-                                                color: '#4a5568', 
-                                                margin: '0 0 1rem 0',
-                                                display: '-webkit-box',
-                                                WebkitLineClamp: 2,
-                                                WebkitBoxOrient: 'vertical',
-                                                overflow: 'hidden'
-                                            }}>
-                                                {product.description}
-                                            </p>
-                                        )} */}
+                                     
                                 
                                        {/* Price, Stock & Action Buttons */}
-                                        <div>
+                                     
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                                                <span style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#2b6cb0' }}>
+                                                <span className='price'>
                                                     ${Number(product.price).toFixed(2)}
                                                 </span>
 
-                                                <span style={{ 
-                                                    fontSize: '0.8rem', 
-                                                    color: !isOutOfStock ? '#38a169' : '#e53e3e',
-                                                    fontWeight: '600'
-                                                }}>
+                                                <span className={`stock-status ${isOutOfStock ? 'out-of-stock' : 'in-stock'}`}>
                                                     {!isOutOfStock ? `${product.stock} in stock` : 'Out of Stock'}
                                                 </span>
                                             </div>
 
-                                            {/* Actions Group */}
-                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                                <Link 
-                                                    to={`/products/${productId}`}
-                                                    style={{
-                                                        flex: 1,
-                                                        textAlign: 'center',
-                                                        backgroundColor: '#edf2f7',
-                                                        color: '#2d3748',
-                                                        padding: '0.5rem',
-                                                        borderRadius: '4px',
-                                                        textDecoration: 'none',
-                                                        fontWeight: '500',
-                                                        fontSize: '0.875rem'
-                                                    }}
-                                                    title={`View details of ${product.title}`}
-                                                >
-                                                    <FontAwesomeIcon icon={faArrowRight} />
-                                                </Link>
+                                        
 
                                                 <button
                                                     type="button"
                                                     onClick={() => addToCart(product, 1)}
                                                     disabled={isOutOfStock}
-                                                    style={{
-                                                        flex: 1.2,
-                                                        backgroundColor: isOutOfStock ? '#cbd5e0' : '#3182ce',
-                                                        color: '#fff',
-                                                        border: 'none',
-                                                        padding: '0.5rem',
-                                                        borderRadius: '4px',
-                                                        fontWeight: '500',
-                                                        fontSize: '0.875rem',
-                                                        cursor: isOutOfStock ? 'not-allowed' : 'pointer',
-                                                        transition: 'background-color 0.2s'
-                                                    }}
+                                                   className={`add-to-cart-btn main-btn ${isOutOfStock ? 'disabled' : ''}`}
                                                     title='add to cart'
                                                 >
-                                                    <FontAwesomeIcon icon={faCartPlus} />
+                                                    add to cart
                                                 </button>
-                                            </div>
-                                        </div>
+                                            
+                                       
                                     </div>
+                                     <Link  to={`/products/${productId}`} className="view-details-link"
+                                     title={`View details of ${product.title}`} ></Link>
                             </div>
                         );
                     })}
