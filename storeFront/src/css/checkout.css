@@ -1,3 +1,4 @@
+
 .checkout-page{
     padding:.5rem;
     position: relative; /* Establishes a local container */
@@ -9,6 +10,7 @@
 }
 .order-item{
     display: flex;
+
     justify-content: space-around;
 }
 .order-item .pricing{
@@ -118,4 +120,16 @@ select option:disabled {
 .check-box label:has(input:disabled) {
     opacity: 0.5;
     cursor: not-allowed;
+}
+.order-card{
+    border: 2px solid #fff;
+     border-radius: 8px;
+     padding: 1.5rem;
+     margin: 1.5rem 0 ;
+}
+.order-details{
+    display: grid;
+    gap: .75rem;
+    margin-top: 1rem;
+   
 }

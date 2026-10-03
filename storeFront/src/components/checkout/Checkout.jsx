@@ -160,10 +160,10 @@ if (orderComplete) {
       </div>
 
       {/* Main Details Card */}
-      <div className="order-card" style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '1.5rem', margin: '1.5rem 0' }}>
+      <div className="order-card" >
         <h3>Order Summary</h3>
         
-        <div style={{ display: 'grid', gap: '0.75rem', marginTop: '1rem' }}>
+        <div className="order-details" >
           <div>
             <strong>Order ID:</strong> <span style={{ fontFamily: 'monospace' }}>{orderId}</span>
           </div>
@@ -199,20 +199,12 @@ if (orderComplete) {
                     href={shipping.trackingUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="track-package-btn"
-                    style={{
-                      display: 'inline-block',
-                      padding: '0.5rem 1rem',
-                      backgroundColor: '#2563eb',
-                      color: '#ffffff',
-                      borderRadius: '4px',
-                      textDecoration: 'none',
-                      fontWeight: '500'
-                    }}
+                    className="track-package-btn main-btn"
+                   
                   >
                     Track Package on {shipping.carrier} ↗
                   </a>
-                  <p style={{ fontSize: '0.85rem', color: '#f0f5ff', marginTop: '0.25rem' }}>
+                  <p style={{ fontSize: '0.85rem',  marginTop: '0.25rem' }}>
                         * Tracking information may take up to 24 hours to update after label creation.
                     </p>
                 </div>
@@ -223,14 +215,11 @@ if (orderComplete) {
       </div>
 
       {/* Action Controls */}
-      <div className="actions" style={{ textAlign: 'center' }}>
+      <div className="actions" style={{paddingBottom:'2rem'}} >
         <button 
           onClick={() => navigate('/')}
-          style={{
-            padding: '0.75rem 1.5rem',
-            cursor: 'pointer',
-            borderRadius: '4px'
-          }}
+          style={{marginInline:'auto' }}
+            className="main-btn"
         >
           Continue Shopping
         </button>
