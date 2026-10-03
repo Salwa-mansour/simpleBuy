@@ -21,7 +21,7 @@ function Nav() {
             <ul className="nav-links" >
                 <li>
                     <Link to="/">
-                    <img src='./logoipsum-blackandwhite.svg' width="100" className="logo" />
+                    <img src='/logoipsum-blackandwhite.svg' width="100" className="logo" />
                     </Link>
                 </li>
                

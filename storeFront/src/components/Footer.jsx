@@ -5,8 +5,8 @@ function Footer() {
     <footer style={styles.footer}>
       <div style={styles.container}>
         <div style={styles.brand}>
-               <Link to="/">
-                    <img src='./logoipsum-blackandwhite.svg' width="100" className="logo" />
+               <Link to="/"  style={styles.logoLink}>
+                    <img src='/logoipsum-blackandwhite.svg' width="100" style={styles.logoImg}  />
               </Link>
           <p style={styles.copy}>&copy; {new Date().getFullYear()} All rights reserved.</p>
         </div>
@@ -44,11 +44,13 @@ const styles = {
     alignItems: 'center',
     gap: '12px',
   },
-  logoText: {
-    fontWeight: '800',
-    letterSpacing: '0.5px',
-    color: '#222',
-    fontSize: '14px',
+  logoLink: {
+    display: 'block',
+    height: '25px',
+  },
+  logoImg:{
+      display: 'block',
+    height: '100%',
   },
   copy: {
     color: '#666',
